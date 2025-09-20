@@ -15,7 +15,7 @@
       html, body {
         height: 100%;
         margin: 0;
-        background: #fff; /* white background */
+        background: #fff;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -27,13 +27,14 @@
         gap: 16px;
       }
       #outputCanvas {
-        background: #000; /* keep canvas black for contrast */
-        width: 800px;     /* larger than default */
+        background: #000;
+        width: 800px;
         height: auto;
         display: block;
       }
+      /* make root visible so React can show its UI */
       #root {
-        display: none; /* hidden React mount point */
+        margin-top: 12px;
       }
     </style>
   </head>
