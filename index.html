@@ -2,8 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
+    <link rel="icon" href="/favicon.ico"/>
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,orientation=landscape"/>
     <meta name="theme-color" content="#000000"/>
+    <meta name="description" content="A PlayStation2 emulator for web browsers"/>
+    <link rel="apple-touch-icon" href="/play-192.png"/>
+    <link rel="manifest" href="/manifest.json"/>
     <title>Play!</title>
     <style>
       body {
@@ -28,16 +32,114 @@
         transform: translate(-50%,-50%);
         background: #000;
         width: 100vw;
-        height: 56.25vw;   /* 9/16 = 0.5625 */
+        height: 56.25vw;   /* 9/16 = 0.5625 → 16:9 aspect */
         max-width: 100vw;
         max-height: 100vh;
       }
     </style>
   </head>
   <body>
+    <!-- React will inject Import button here -->
     <div id="root"></div>
+
+    <!-- Canvas -->
     <canvas id="outputCanvas" width="1280" height="720" tabindex="-1"></canvas>
+
+    <!-- React bundle + service worker -->
     <script src="/static/js/main.caabe80b.js"></script>
     <script src="/register.js"></script>
+
+    <!-- Controller support -->
+    <script>
+      function sendKey(key, type) {
+        const evt = new KeyboardEvent(type, { key, bubbles: true });
+        window.dispatchEvent(evt);
+      }
+
+      // Mapping: gamepad button index → emulator key
+      const buttonMap = {
+        12: "ArrowUp",    // D-pad Up
+        13: "ArrowDown",  // D-pad Down
+        14: "ArrowLeft",  // D-pad Left
+        15: "ArrowRight", // D-pad Right
+
+        2: "a", // Square
+        0: "z", // Cross
+        3: "s", // Triangle
+        1: "x", // Circle
+
+        9: "Enter",     // Start
+        8: "Backspace", // Select
+
+        4: "1",  // L1
+        6: "2",  // L2
+        10: "3", // L3
+
+        5: "8",  // R1
+        7: "9",  // R2
+        11: "0"  // R3
+      };
+
+      // Axes mapping for analog sticks
+      const axisMap = {
+        left:  { x: 0, y: 1, keys: { left: "f", right: "h", up: "t", down: "g" } },
+        right: { x: 2, y: 3, keys: { left: "j", right: "l", up: "i", down: "k" } }
+      };
+
+      const pressed = new Set();
+
+      function pollGamepads() {
+        const pads = navigator.getGamepads();
+        for (const gp of pads) {
+          if (!gp) continue;
+
+          // Handle buttons
+          gp.buttons.forEach((btn, i) => {
+            const key = buttonMap[i];
+            if (!key) return;
+            if (btn.pressed && !pressed.has(key)) {
+              sendKey(key, "keydown");
+              pressed.add(key);
+            } else if (!btn.pressed && pressed.has(key)) {
+              sendKey(key, "keyup");
+              pressed.delete(key);
+            }
+          });
+
+          // Handle axes (sticks)
+          for (const stick of Object.values(axisMap)) {
+            const x = gp.axes[stick.x];
+            const y = gp.axes[stick.y];
+            const dead = 0.3; // deadzone
+
+            const dirs = [];
+            if (x < -dead) dirs.push(stick.keys.left);
+            if (x > dead)  dirs.push(stick.keys.right);
+            if (y < -dead) dirs.push(stick.keys.up);
+            if (y > dead)  dirs.push(stick.keys.down);
+
+            for (const k of Object.values(stick.keys)) {
+              if (dirs.includes(k) && !pressed.has(k)) {
+                sendKey(k, "keydown");
+                pressed.add(k);
+              } else if (!dirs.includes(k) && pressed.has(k)) {
+                sendKey(k, "keyup");
+                pressed.delete(k);
+              }
+            }
+          }
+        }
+        requestAnimationFrame(pollGamepads);
+      }
+
+      window.addEventListener("gamepadconnected", (e) => {
+        console.log("Gamepad connected:", e.gamepad.id);
+        pollGamepads();
+      });
+
+      window.addEventListener("gamepaddisconnected", (e) => {
+        console.log("Gamepad disconnected:", e.gamepad.id);
+      });
+    </script>
   </body>
 </html>
