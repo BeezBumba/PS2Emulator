@@ -15,7 +15,7 @@
       html, body {
         height: 100%;
         margin: 0;
-        background: #000;
+        background: #000; /* black background */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -30,22 +30,43 @@
       }
       #outputCanvas {
         background: #000;
-        width: 100%;          /* scale to container width */
-        height: auto;         /* preserve aspect ratio */
-        max-width: 90vw;      /* never exceed viewport width */
-        max-height: 80vh;     /* never exceed viewport height */
+        width: 100%;
+        height: auto;
+        max-width: 90vw;  /* never exceed viewport width */
+        max-height: 80vh; /* never exceed viewport height */
         display: block;
       }
       #root {
-        margin-bottom: 12px;  /* Import button area above canvas */
+        margin-bottom: 12px; /* Import button area above canvas */
       }
     </style>
   </head>
   <body>
     <div class="stage">
+      <!-- React will inject Import button here -->
       <div id="root"></div>
-      <canvas id="outputCanvas" width="1024" height="768" tabindex="-1"></canvas>
+
+      <!-- Canvas -->
+      <canvas id="outputCanvas" tabindex="-1"></canvas>
     </div>
+
+    <script>
+      const canvas = document.getElementById('outputCanvas');
+
+      function resizeCanvasToDisplaySize() {
+        const displayWidth  = canvas.clientWidth;
+        const displayHeight = canvas.clientHeight;
+        if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+          canvas.width  = displayWidth;
+          canvas.height = displayHeight;
+        }
+      }
+
+      // Resize on load and whenever window size changes
+      window.addEventListener('resize', resizeCanvasToDisplaySize);
+      resizeCanvasToDisplaySize();
+    </script>
+
     <script src="/register.js"></script>
   </body>
 </html>
