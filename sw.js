@@ -3,7 +3,6 @@ const CACHE_NAME = 'play-cache-v1';
 const URLS_TO_CACHE = [
   '/Play.js',
   '/Play.wasm',
-  '/_headers',
   '/favicon.ico',
   '/index.html',
   '/manifest.json',
