@@ -15,7 +15,7 @@
       html, body {
         height: 100%;
         margin: 0;
-        background: #000; /* black background */
+        background: #000;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -28,43 +28,60 @@
         max-width: 100%;
         max-height: 100%;
       }
-      #outputCanvas {
-        background: #000;
-        width: 100%;
-        height: auto;
-        max-width: 90vw;  /* never exceed viewport width */
-        max-height: 80vh; /* never exceed viewport height */
-        display: block;
-      }
       #root {
-        margin-bottom: 12px; /* Import button area above canvas */
+        /* React will inject Import here; centered above canvas */
+        color: #fff; /* in case it renders text */
+      }
+      #outputCanvas {
+        display: block;
+        background: #000; /* keep canvas black */
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
       }
     </style>
   </head>
   <body>
     <div class="stage">
-      <!-- React will inject Import button here -->
+      <!-- Import button (from React) appears here -->
       <div id="root"></div>
 
-      <!-- Canvas -->
+      <!-- Canvas locked to 4:3, sized by JS -->
       <canvas id="outputCanvas" tabindex="-1"></canvas>
     </div>
 
     <script>
       const canvas = document.getElementById('outputCanvas');
 
-      function resizeCanvasToDisplaySize() {
-        const displayWidth  = canvas.clientWidth;
-        const displayHeight = canvas.clientHeight;
-        if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
-          canvas.width  = displayWidth;
-          canvas.height = displayHeight;
+      // Desired aspect = 4:3, cap size = 1200x900, also respect viewport (90vw x 80vh)
+      function sizeCanvas() {
+        const maxCssW = Math.min(window.innerWidth * 0.90, 1200);
+        const maxCssH = Math.min(window.innerHeight * 0.80, 900);
+
+        // Fit 4:3 inside the available box
+        let w = maxCssW;
+        let h = w * (3 / 4);
+        if (h > maxCssH) {
+          h = maxCssH;
+          w = h * (4 / 3);
+        }
+
+        // Round to integers to avoid subpixel fuzz
+        w = Math.floor(w);
+        h = Math.floor(h);
+
+        // Apply CSS size (display size)
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+
+        // Match drawing buffer to CSS so the game fills the canvas
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
         }
       }
 
-      // Resize on load and whenever window size changes
-      window.addEventListener('resize', resizeCanvasToDisplaySize);
-      resizeCanvasToDisplaySize();
+      window.addEventListener('resize', sizeCanvas);
+      sizeCanvas();
     </script>
 
     <script src="/register.js"></script>
