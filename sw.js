@@ -4,6 +4,8 @@ const URLS_TO_CACHE = [
   '/Play.js',
   '/Play.wasm',
   '/favicon.ico',
+  '/play-192.png',
+  '/play-512.png',
   '/index.html',
   '/manifest.json',
   '/static/js/main.caabe80b.js',
