@@ -1,16 +1,20 @@
 {
-  "short_name": "play",
+  "short_name": "Play",
   "name": "Play!",
   "icons": [
     {
-      "src": "playjs.png",
-      "sizes": "200x200",
-      "type": "image/x-icon"
+      "src": "play-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "play-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }
-
