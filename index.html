@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="A PlayStation2 emulator for web browsers" />
-    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="apple-touch-icon" href="/play-192.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>Play!.js</title>
     <script defer src="/static/js/main.caabe80b.js"></script>
@@ -16,9 +16,12 @@
         height: 100%;
         margin: 0;
         background: #000;
-        color: #fff;
       }
-      /* Full-viewport centering */
+      /* Hidden React root to satisfy ReactDOM.render */
+      #root {
+        display: none;
+      }
+      /* Fullscreen centered canvas */
       .stage {
         display: grid;
         place-items: center;
@@ -26,30 +29,33 @@
         height: 100vh;
         background: #000;
       }
-      /* Scale canvas up, keep aspect ratio, never overflow */
       #outputCanvas {
         display: block;
         background: #000;
         max-width: 100vw;
         max-height: 100vh;
-        width: 100vw;      /* fills width */
-        height: auto;      /* scales height to keep aspect ratio */
-        image-rendering: pixelated;         /* crisp scaling for low-res */
+        width: 100vw;
+        height: auto;
+        image-rendering: pixelated;
         image-rendering: crisp-edges;
       }
-      /* If the canvas would be taller than the viewport, cap height */
       @media (orientation: portrait) {
         #outputCanvas {
           width: auto;
-          height: 100vh;   /* fills height */
+          height: 100vh;
         }
       }
     </style>
   </head>
   <body>
+    <!-- Hidden React mount point -->
+    <div id="root"></div>
+
+    <!-- Visible centered canvas -->
     <div class="stage">
       <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
     </div>
+
     <script src="/register.js"></script>
   </body>
 </html>
