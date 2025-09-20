@@ -1,61 +1,47 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="A PlayStation2 emulator for web browsers" />
-    <link rel="apple-touch-icon" href="/play-192.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <meta charset="utf-8"/>
+    <link rel="icon" href="/favicon.ico"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="theme-color" content="#000000"/>
+    <meta name="description" content="A PlayStation2 emulator for web browsers"/>
+    <link rel="apple-touch-icon" href="/play-192.png"/>
+    <link rel="manifest" href="/manifest.json"/>
     <title>Play!.js</title>
     <script defer src="/static/js/main.caabe80b.js"></script>
-    <link href="/static/css/main.5a525eca.css" rel="stylesheet" />
+    <link href="/static/css/main.5a525eca.css" rel="stylesheet"/>
     <style>
       html, body {
         height: 100%;
         margin: 0;
         background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
-      /* Hidden React root to satisfy ReactDOM.render */
-      #root {
-        display: none;
-      }
-      /* Fullscreen centered canvas */
       .stage {
-        display: grid;
-        place-items: center;
-        width: 100vw;
-        height: 100vh;
-        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
       }
       #outputCanvas {
-        display: block;
         background: #000;
-        max-width: 100vw;
-        max-height: 100vh;
-        width: 100vw;
+        width: 800px;   /* a bit larger than 640 */
         height: auto;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
+        display: block;
       }
-      @media (orientation: portrait) {
-        #outputCanvas {
-          width: auto;
-          height: 100vh;
-        }
+      #root {
+        display: none; /* hidden React mount point */
       }
     </style>
   </head>
   <body>
-    <!-- Hidden React mount point -->
-    <div id="root"></div>
-
-    <!-- Visible centered canvas -->
     <div class="stage">
-      <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
+      <canvas id="outputCanvas" width="800" height="600" tabindex="-1"></canvas>
+      <div id="root"></div>
     </div>
-
     <script src="/register.js"></script>
   </body>
 </html>
