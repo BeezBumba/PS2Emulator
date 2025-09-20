@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <link rel="icon" href="/favicon.ico"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="theme-color" content="#000000"/>
+    <meta name="theme-color" content="#ffffff"/>
     <meta name="description" content="A PlayStation2 emulator for web browsers"/>
     <link rel="apple-touch-icon" href="/play-192.png"/>
     <link rel="manifest" href="/manifest.json"/>
@@ -15,7 +15,7 @@
       html, body {
         height: 100%;
         margin: 0;
-        background: #000;
+        background: #fff; /* white background */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -27,8 +27,8 @@
         gap: 16px;
       }
       #outputCanvas {
-        background: #000;
-        width: 800px;   /* a bit larger than 640 */
+        background: #000; /* keep canvas black for contrast */
+        width: 800px;     /* larger than default */
         height: auto;
         display: block;
       }
