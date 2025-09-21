@@ -587,6 +587,71 @@
                             w(f, h)))
                         }
                         ))
+
+                        // GAMEPAD FUNCTIONALITY ADDED
+                        // Track pressed state so we don't spam events
+                        const gamepadPressed = {};
+
+                        function sendGamepadKey(key, down) {
+                            if (gamepadPressed[key] === down) return;
+                            gamepadPressed[key] = down;
+                            s(key, down ? "keydown" : "keyup");
+                        }
+
+                        function handleGamepad(pad) {
+                            // Face buttons
+                            sendGamepadKey("Z", pad.buttons[0].pressed); // Cross (A)
+                            sendGamepadKey("X", pad.buttons[1].pressed); // Circle (B)
+                            sendGamepadKey("A", pad.buttons[2].pressed); // Square (X)
+                            sendGamepadKey("S", pad.buttons[3].pressed); // Triangle (Y)
+
+                            // D-Pad
+                            sendGamepadKey("ArrowUp", pad.buttons[12].pressed);
+                            sendGamepadKey("ArrowDown", pad.buttons[13].pressed);
+                            sendGamepadKey("ArrowLeft", pad.buttons[14].pressed);
+                            sendGamepadKey("ArrowRight", pad.buttons[15].pressed);
+
+                            // Start / Select
+                            sendGamepadKey("Enter", pad.buttons[9].pressed);
+                            sendGamepadKey("Backspace", pad.buttons[8].pressed);
+
+                            // Shoulders / Triggers
+                            sendGamepadKey("1", pad.buttons[4].pressed);  // L1
+                            sendGamepadKey("2", pad.buttons[6].pressed);  // L2
+                            sendGamepadKey("3", pad.buttons[10].pressed); // L3
+                            sendGamepadKey("8", pad.buttons[5].pressed);  // R1
+                            sendGamepadKey("9", pad.buttons[7].pressed);  // R2
+                            sendGamepadKey("0", pad.buttons[11].pressed); // R3
+
+                            // Left stick → F/H/T/G
+                            sendGamepadKey("f", pad.axes[0] < -0.5);
+                            sendGamepadKey("h", pad.axes[0] > 0.5);
+                            sendGamepadKey("t", pad.axes[1] < -0.5);
+                            sendGamepadKey("g", pad.axes[1] > 0.5);
+
+                            // Right stick → J/L/I/K
+                            sendGamepadKey("j", pad.axes[2] < -0.5);
+                            sendGamepadKey("l", pad.axes[2] > 0.5);
+                            sendGamepadKey("i", pad.axes[3] < -0.5);
+                            sendGamepadKey("k", pad.axes[3] > 0.5);
+                        }
+
+                        function pollGamepads() {
+                            const pads = navigator.getGamepads();
+                            for (const pad of pads) {
+                                if (pad) handleGamepad(pad);
+                            }
+                            requestAnimationFrame(pollGamepads);
+                        }
+
+                        window.addEventListener("gamepadconnected", (e) => {
+                            console.log("Gamepad connected:", e.gamepad.id);
+                            pollGamepads();
+                        });
+
+                        window.addEventListener("gamepaddisconnected", (e) => {
+                            console.log("Gamepad disconnected:", e.gamepad.id);
+                        });
                     }))
                 </script>
             </div>
