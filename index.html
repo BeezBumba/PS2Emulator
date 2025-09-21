@@ -43,95 +43,95 @@
     </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div class="global-row">
-      <div class="global-column">
-        <div class="canvas-wrapper">
-          <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
-        </div>
-        <div id="root"></div>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div class="global-row">
+    <div class="global-column">
+      <div class="canvas-wrapper">
+        <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
       </div>
+      <div id="root"></div>
     </div>
-    <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const keyMap = {
-    // D-Pad
-    12: "ArrowUp",    // DPad Up
-    13: "ArrowDown",  // DPad Down
-    14: "ArrowLeft",  // DPad Left
-    15: "ArrowRight", // DPad Right
+  </div>
 
-    // Face buttons
-    2: "KeyA",        // Square → A
-    0: "KeyZ",        // Cross → Z
-    3: "KeyS",        // Triangle → S
-    1: "KeyX",        // Circle → X
+  <!-- Debugging UI -->
+  <div id="debug-panel" style="position:fixed;bottom:0;left:0;
+       background:#111;color:#0f0;font-family:monospace;
+       padding:10px;max-height:40%;overflow:auto;font-size:12px;">
+    <button id="logGamepad">Log Gamepad State</button>
+    <div id="gamepadState">No input yet…</div>
+  </div>
 
-    // Start / Select
-    9: "Enter",       // Start
-    8: "Backspace",   // Select
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const stateDiv = document.getElementById("gamepadState");
+    const logBtn = document.getElementById("logGamepad");
 
-    // Shoulder / Triggers
-    4: "Digit1",      // L1
-    6: "Digit2",      // L2
-    10: "Digit3",     // L3
-    5: "Digit8",      // R1
-    7: "Digit9",      // R2
-    11: "Digit0",     // R3
-  };
+    const keyMap = {
+      12: "ArrowUp", 13: "ArrowDown", 14: "ArrowLeft", 15: "ArrowRight",
+      2: "KeyA", 0: "KeyZ", 3: "KeyS", 1: "KeyX",
+      9: "Enter", 8: "Backspace",
+      4: "Digit1", 6: "Digit2", 10: "Digit3",
+      5: "Digit8", 7: "Digit9", 11: "Digit0"
+    };
 
-  // Analog stick mapping
-  function handleAxes(axes) {
-    // Left stick → F/H (x-axis), T/G (y-axis)
-    if (axes[0] < -0.5) sendKey("KeyF", true);
-    else if (axes[0] > 0.5) sendKey("KeyH", true);
-    else { sendKey("KeyF", false); sendKey("KeyH", false); }
+    const pressed = {};
 
-    if (axes[1] < -0.5) sendKey("KeyT", true);
-    else if (axes[1] > 0.5) sendKey("KeyG", true);
-    else { sendKey("KeyT", false); sendKey("KeyG", false); }
-
-    // Right stick → J/L (x-axis), I/K (y-axis)
-    if (axes[2] < -0.5) sendKey("KeyJ", true);
-    else if (axes[2] > 0.5) sendKey("KeyL", true);
-    else { sendKey("KeyJ", false); sendKey("KeyL", false); }
-
-    if (axes[3] < -0.5) sendKey("KeyI", true);
-    else if (axes[3] > 0.5) sendKey("KeyK", true);
-    else { sendKey("KeyI", false); sendKey("KeyK", false); }
-  }
-
-  // Track pressed state to avoid spamming events
-  const pressed = {};
-
-  function sendKey(code, down) {
-    if (pressed[code] === down) return;
-    pressed[code] = down;
-    const evt = new KeyboardEvent(down ? "keydown" : "keyup", { code, key: code });
-    document.dispatchEvent(evt);
-  }
-
-  function pollGamepads() {
-    const pads = navigator.getGamepads();
-    for (const pad of pads) {
-      if (!pad) continue;
-
-      // Buttons
-      pad.buttons.forEach((btn, i) => {
-        if (keyMap[i]) sendKey(keyMap[i], btn.pressed);
+    function sendKey(code, down) {
+      if (pressed[code] === down) return;
+      pressed[code] = down;
+      const evt = new KeyboardEvent(down ? "keydown" : "keyup", {
+        code,
+        key: code,
+        bubbles: true
       });
-
-      // Axes
-      handleAxes(pad.axes);
+      window.dispatchEvent(evt);
+      // Debug output
+      stateDiv.innerText = `Sent ${down ? "DOWN" : "UP"}: ${code}`;
     }
-    requestAnimationFrame(pollGamepads);
-  }
 
-  window.addEventListener("gamepadconnected", () => {
-    console.log("Gamepad connected");
-    pollGamepads();
+    function handleAxes(axes) {
+      // Left stick
+      if (axes[0] < -0.5) sendKey("KeyF", true);
+      else if (axes[0] > 0.5) sendKey("KeyH", true);
+      else { sendKey("KeyF", false); sendKey("KeyH", false); }
+
+      if (axes[1] < -0.5) sendKey("KeyT", true);
+      else if (axes[1] > 0.5) sendKey("KeyG", true);
+      else { sendKey("KeyT", false); sendKey("KeyG", false); }
+
+      // Right stick
+      if (axes[2] < -0.5) sendKey("KeyJ", true);
+      else if (axes[2] > 0.5) sendKey("KeyL", true);
+      else { sendKey("KeyJ", false); sendKey("KeyL", false); }
+
+      if (axes[3] < -0.5) sendKey("KeyI", true);
+      else if (axes[3] > 0.5) sendKey("KeyK", true);
+      else { sendKey("KeyI", false); sendKey("KeyK", false); }
+    }
+
+    function pollGamepads() {
+      const pads = navigator.getGamepads();
+      for (const pad of pads) {
+        if (!pad) continue;
+        pad.buttons.forEach((btn, i) => {
+          if (keyMap[i]) sendKey(keyMap[i], btn.pressed);
+        });
+        handleAxes(pad.axes);
+      }
+      requestAnimationFrame(pollGamepads);
+    }
+
+    window.addEventListener("gamepadconnected", (e) => {
+      stateDiv.innerText = `Gamepad connected: ${e.gamepad.id}`;
+      pollGamepads();
+    });
+
+    logBtn.addEventListener("click", () => {
+      const pads = navigator.getGamepads();
+      stateDiv.innerText = JSON.stringify(pads[0], null, 2);
+      console.log(pads[0]);
+    });
   });
-});
-</script>
-  </body>
+  </script>
+</body>
 </html>
