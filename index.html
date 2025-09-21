@@ -127,6 +127,78 @@
                 transition: transform .3s
             }
 
+            /* Touch controls toggle button */
+            #touch-controls-toggle {
+                position: fixed;
+                top: 80px;
+                right: 0;
+                z-index: 2001;
+                background: #34495e;
+                color: #fff;
+                border: none;
+                border-radius: 8px 0 0 8px;
+                box-shadow: 0 2px 8px #0004;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 0.9em;
+                transition: right .3s
+            }
+
+            #touch-controls-toggle.menu-open {
+                right: 320px
+            }
+
+            /* File input overlay */
+            #file-input-overlay {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 2500;
+                background: rgba(0, 0, 0, 0.9);
+                color: #fff;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                display: none;
+                text-align: center;
+                min-width: 300px;
+            }
+
+            #file-input-overlay.show {
+                display: block;
+            }
+
+            #file-input-overlay h3 {
+                margin-top: 0;
+                margin-bottom: 16px;
+                font-size: 1.2em;
+            }
+
+            #file-input-overlay input[type="file"] {
+                width: 100%;
+                margin: 12px 0;
+                padding: 8px;
+                border-radius: 4px;
+                border: 1px solid #555;
+                background: #333;
+                color: #fff;
+            }
+
+            #file-input-overlay button {
+                background: #e74c3c;
+                color: #fff;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-top: 12px;
+            }
+
+            #file-input-overlay button:hover {
+                background: #c0392b;
+            }
+
             .mc-actions button:active,.mc-center-buttons button:active,.mc-dpad button:active,.mc-joystick .thumbstick:active,.mc-shoulder-left button:active,.mc-shoulder-right button:active {
                 filter: brightness(1.5) drop-shadow(0 0 8px #fff8);
                 outline: 2px solid #fff;
@@ -150,7 +222,13 @@
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                align-items: center
+                align-items: center;
+                transition: opacity 0.3s ease;
+            }
+
+            #mobile-controls.hidden {
+                opacity: 0;
+                pointer-events: none;
             }
 
             .mc-grid-container {
@@ -336,16 +414,36 @@
                 <button id="info-menu-toggle" aria-label="Open info menu">
                     <span id="info-arrow" style="font-size:2em">&#x25C0;</span>
                 </button>
+                <button id="touch-controls-toggle" aria-label="Toggle touch controls">
+                    <span>🎮</span>
+                </button>
+                
+                <!-- File Input Overlay -->
+                <div id="file-input-overlay">
+                    <h3>Choose a Game File</h3>
+                    <p>Select an ISO, CSO, CHD, ISZ, BIN, or ELF file to load:</p>
+                    <input type="file" id="overlay-file-input" accept=".iso,.cso,.chd,.isz,.bin,.elf">
+                    <br>
+                    <button id="close-overlay">Cancel</button>
+                </div>
+                
                 <aside id="info-menu">
                     <div style="padding:16px;background:#222;color:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
                         <h1 style="font-size:2em;margin-bottom:.2em">Play!</h1>
                         <div style="margin:16px 0">
                             <label for="slide-file-input" style="font-weight:700;display:block;margin-bottom:8px">Choose a game file:</label>
                             <p>
-                                ISO, CSO, CHD, ISZ, BIN, and EL are supported. <br>
+                                ISO, CSO, CHD, ISZ, BIN, and ELF are supported. <br>
                                 <br>This was created to allow people to use Play! on iOS devices without needing to jailbreak or sideload the app on their phone.
                             </p>
-                            <input type="file" id="slide-file-input" style="width:100%;max-width:240px"/>
+                            <button id="open-file-overlay" style="width:100%;max-width:240px;padding:8px 12px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer;">Choose File</button>
+                        </div>
+                        <div style="margin:16px 0">
+                            <label style="font-weight:700;display:block;margin-bottom:8px">Touch Controls:</label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" id="touch-controls-checkbox" checked>
+                                <span>Show touch controls on mobile</span>
+                            </label>
                         </div>
                     </div>
                     <div style="padding:16px;background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
@@ -363,7 +461,7 @@
                     <div style="padding:16px;background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
                         <h3>Play! License</h3>
                         <div>
-                            <p>Copyright (c) 2006-2014, Jean-Philip Desjardins All rights reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+                            <p>Copyright (c) 2006-2014, Jean-Philip Desjardins All rights reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
                         </div>
                     </div>
                 </aside>
@@ -407,130 +505,168 @@
                                 </div>
                             </div>
                             <div class="mc-shoulder-right">
-                                <button data-key="8">R1</button>
-                                <button data-key="9">R2</button>
-                                <button data-key="0">R3</button>
+                                <button data-key="4">R1</button>
+                                <button data-key="5">R2</button>
+                                <button data-key="6">R3</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
-                        const e = document.getElementById("info-menu")
-                          , t = document.getElementById("info-menu-toggle")
-                          , n = document.getElementById("info-arrow");
-                        let o = !1;
-                        t.addEventListener("click", (function() {
-                            o = !o,
-                            e.classList.toggle("open", o),
-                            t.classList.toggle("open", o),
-                            n.innerHTML = o ? "&#x25B6;" : "&#x25C0;"
-                        }
-                        )),
-                        document.getElementById("main-file-input").addEventListener("change", (function(e) {
-                            const t = e.target;
-                            if (t && t.files && 0 !== t.files.length) {
-                                let e = t.files[0];
-                                window.bootFile ? window.bootFile(e) : d("Game loader not available.", "Error")
+                        // Info menu toggle functionality
+                        const infoMenuToggle = document.getElementById("info-menu-toggle");
+                        const infoMenu = document.getElementById("info-menu");
+                        const infoArrow = document.getElementById("info-arrow");
+                        const touchControlsToggle = document.getElementById("touch-controls-toggle");
+                        
+                        infoMenuToggle.addEventListener("click", function() {
+                            const isOpen = infoMenu.classList.contains("open");
+                            if (isOpen) {
+                                infoMenu.classList.remove("open");
+                                infoMenuToggle.classList.remove("open");
+                                touchControlsToggle.classList.remove("menu-open");
+                                infoArrow.style.transform = "rotate(0deg)";
+                            } else {
+                                infoMenu.classList.add("open");
+                                infoMenuToggle.classList.add("open");
+                                touchControlsToggle.classList.add("menu-open");
+                                infoArrow.style.transform = "rotate(180deg)";
                             }
+                        });
+
+                        // Touch controls toggle functionality
+                        const mobileControls = document.getElementById("mobile-controls");
+                        const touchControlsCheckbox = document.getElementById("touch-controls-checkbox");
+                        const touchControlsButton = document.getElementById("touch-controls-toggle");
+                        
+                        // Load saved preference
+                        const savedPreference = localStorage.getItem("touchControlsVisible");
+                        const shouldShow = savedPreference === null ? true : savedPreference === "true";
+                        
+                        touchControlsCheckbox.checked = shouldShow;
+                        if (!shouldShow) {
+                            mobileControls.classList.add("hidden");
                         }
-                        )),
-                        document.getElementById("slide-file-input").addEventListener("change", (function(e) {
-                            const t = e.target;
-                            if (t && t.files && 0 !== t.files.length) {
-                                let e = t.files[0];
-                                window.bootFile ? window.bootFile(e) : d("Game loader not available.", "Error")
+                        
+                        // Checkbox change handler
+                        touchControlsCheckbox.addEventListener("change", function() {
+                            const isVisible = this.checked;
+                            localStorage.setItem("touchControlsVisible", isVisible.toString());
+                            
+                            if (isVisible) {
+                                mobileControls.classList.remove("hidden");
+                            } else {
+                                mobileControls.classList.add("hidden");
                             }
-                        }
-                        ));
-                        const i = document.getElementById("outputCanvas");
-                        function d(e, t="Message") {
-                            const n = `\n                  <div id="custom-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">\n                      <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; max-width: 80%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">\n                          <h3 style="margin-top: 0;">${t}</h3>\n                          <p>${e}</p>\n                          <button id="close-modal" style="padding: 8px 16px; margin-top: 10px; border: none; border-radius: 5px; background: #3498db; color: white; cursor: pointer;">OK</button>\n                      </div>\n                  </div>\n              `;
-                            document.body.insertAdjacentHTML("beforeend", n),
-                            document.getElementById("close-modal").addEventListener("click", ( () => {
-                                document.getElementById("custom-modal").remove()
+                        });
+                        
+                        // Button toggle handler
+                        touchControlsButton.addEventListener("click", function() {
+                            touchControlsCheckbox.checked = !touchControlsCheckbox.checked;
+                            touchControlsCheckbox.dispatchEvent(new Event("change"));
+                        });
+
+                        // File input overlay functionality
+                        const fileInputOverlay = document.getElementById("file-input-overlay");
+                        const openFileOverlay = document.getElementById("open-file-overlay");
+                        const closeOverlay = document.getElementById("close-overlay");
+                        const overlayFileInput = document.getElementById("overlay-file-input");
+                        const mainFileInput = document.getElementById("main-file-input");
+                        
+                        openFileOverlay.addEventListener("click", function() {
+                            fileInputOverlay.classList.add("show");
+                        });
+                        
+                        closeOverlay.addEventListener("click", function() {
+                            fileInputOverlay.classList.remove("show");
+                        });
+                        
+                        // Handle file selection in overlay
+                        overlayFileInput.addEventListener("change", function() {
+                            if (this.files.length > 0) {
+                                // Transfer the selected file to the main input
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(this.files[0]);
+                                mainFileInput.files = dataTransfer.files;
+                                
+                                // Trigger change event on main input
+                                mainFileInput.dispatchEvent(new Event("change", { bubbles: true }));
+                                
+                                // Close overlay
+                                fileInputOverlay.classList.remove("show");
                             }
-                            ))
-                        }
+                        });
+                        
+                        // Close overlay when clicking outside
+                        fileInputOverlay.addEventListener("click", function(e) {
+                            if (e.target === this) {
+                                this.classList.remove("show");
+                            }
+                        });
+
+                        // Mobile controls functionality (existing code)
                         function s(e, t) {
-                            let n = "";
-                            1 === e.length ? n = "Key" + e.toUpperCase() : "Enter" === e ? n = "Enter" : "Backspace" === e ? n = "Backspace" : e.startsWith("Arrow") ? n = e : ["1", "2", "3", "8", "9", "0"].includes(e) && (n = "Digit" + e);
-                            const o = new KeyboardEvent(t,{
+                            const n = new KeyboardEvent(t,{
                                 key: e,
-                                code: n,
-                                bubbles: !0,
-                                cancelable: !0,
-                                isTrusted: !0
+                                code: e,
+                                bubbles: !0
                             });
-                            i && i.dispatchEvent(o),
-                            window.dispatchEvent(o),
-                            document.dispatchEvent(o)
+                            document.dispatchEvent(n)
                         }
-                        function c(e, t) {
-                            e.classList.add("pressed"),
-                            s(t, "keydown"),
-                            console.log(`Keydown event dispatched for: ${t}`)
-                        }
-                        function a(e, t) {
-                            e.classList.remove("pressed"),
-                            s(t, "keyup"),
-                            console.log(`Keyup event dispatched for: ${t}`)
-                        }
-                        document.querySelectorAll("#mobile-controls button[data-key]").forEach((function(e) {
+                        document.querySelectorAll("#mobile-controls button[data-key]").forEach((e => {
                             const t = e.getAttribute("data-key");
-                            e.addEventListener("touchstart", (function(n) {
-                                n.preventDefault(),
-                                c(e, t)
+                            function n(e, n) {
+                                e.preventDefault(),
+                                n.classList.add("pressed"),
+                                s(t, "keydown")
                             }
-                            )),
-                            e.addEventListener("mousedown", (function(n) {
-                                n.preventDefault(),
-                                c(e, t)
+                            function o(e, n) {
+                                e.preventDefault(),
+                                n.classList.remove("pressed"),
+                                s(t, "keyup")
                             }
-                            )),
-                            e.addEventListener("touchend", (function(n) {
-                                n.preventDefault(),
-                                a(e, t)
+                            function i(e, t) {
+                                e.preventDefault(),
+                                t.classList.remove("pressed"),
+                                s(t, "keyup")
                             }
-                            )),
-                            e.addEventListener("mouseup", (function(n) {
-                                n.preventDefault(),
-                                a(e, t)
-                            }
-                            )),
+                            e.addEventListener("mousedown", (t => n(t, e))),
+                            e.addEventListener("touchstart", (t => n(t, e)), !1),
+                            e.addEventListener("mouseup", (t => o(t, e))),
+                            e.addEventListener("touchend", (t => o(t, e)), !1),
                             e.addEventListener("mouseleave", (function(n) {
-                                1 === n.buttons && a(e, t)
-                            }
-                            ))
-                        }
-                        ));
-                        const l = document.getElementById("left-joystick")
-                          , r = l.querySelector(".thumbstick")
-                          , u = document.getElementById("right-joystick")
-                          , f = u.querySelector(".thumbstick")
-                          , m = {
-                            up: "t",
-                            down: "g",
-                            left: "f",
-                            right: "h"
-                        }
-                          , p = {
-                            up: "i",
-                            down: "k",
-                            left: "j",
-                            right: "l"
-                        };
-                        let g = new Set
-                          , h = new Set
-                          , v = !1
-                          , y = !1;
+                                1 === n.buttons && i(n, e)
+                            }))
+                        }));
+                        
+                        const l = document.getElementById("left-joystick"),
+                            r = l.querySelector(".thumbstick"),
+                            u = document.getElementById("right-joystick"),
+                            f = u.querySelector(".thumbstick"),
+                            m = {
+                                up: "t",
+                                down: "g",
+                                left: "f",
+                                right: "h"
+                            },
+                            p = {
+                                up: "i",
+                                down: "k",
+                                left: "j",
+                                right: "l"
+                            };
+                        let g = new Set,
+                            h = new Set,
+                            v = !1,
+                            y = !1;
+                        
                         function E(e, t, n, o, i, d) {
                             const c = e.getBoundingClientRect();
-                            let a = n - (c.left + c.width / 2)
-                              , l = o - (c.top + c.height / 2);
+                            let a = n - (c.left + c.width / 2),
+                                l = o - (c.top + c.height / 2);
                             const r = Math.sqrt(a * a + l * l);
-                            r > 30 && (a = a / r * 30,
-                            l = l / r * 30),
+                            r > 30 && (a = a / r * 30, l = l / r * 30),
                             t.style.transform = `translate(calc(-50% + ${a}px), calc(-50% + ${l}px))`,
                             t.classList.add("pressed");
                             const u = new Set;
@@ -539,56 +675,48 @@
                             a < -15 && u.add(i.left),
                             a > 15 && u.add(i.right),
                             u.forEach((e => {
-                                d.has(e) || (s(e, "keydown"),
-                                d.add(e))
-                            }
-                            )),
+                                d.has(e) || (s(e, "keydown"), d.add(e))
+                            })),
                             d.forEach((e => {
-                                u.has(e) || (s(e, "keyup"),
-                                d.delete(e))
-                            }
-                            ))
+                                u.has(e) || (s(e, "keyup"), d.delete(e))
+                            }))
                         }
+                        
                         function w(e, t) {
                             e.style.transform = "translate(-50%, -50%)",
                             e.classList.remove("pressed"),
                             t.forEach((e => {
                                 s(e, "keyup")
-                            }
-                            )),
+                            })),
                             t.clear()
                         }
+                        
                         l.addEventListener("mousedown", (e => {
                             e.preventDefault(),
                             v = !0,
                             E(l, r, e.clientX, e.clientY, m, g)
-                        }
-                        )),
+                        })),
                         l.addEventListener("touchstart", (e => {
                             e.preventDefault(),
                             v = !0;
                             const t = e.touches[0];
                             E(l, r, t.clientX, t.clientY, m, g)
-                        }
-                        ), !1),
+                        }), !1),
                         u.addEventListener("mousedown", (e => {
                             e.preventDefault(),
                             y = !0,
                             E(u, f, e.clientX, e.clientY, p, h)
-                        }
-                        )),
+                        })),
                         u.addEventListener("touchstart", (e => {
                             e.preventDefault(),
                             y = !0;
                             const t = e.touches[0];
                             E(u, f, t.clientX, t.clientY, p, h)
-                        }
-                        ), !1),
+                        }), !1),
                         window.addEventListener("mousemove", (e => {
                             v && E(l, r, e.clientX, e.clientY, m, g),
                             y && E(u, f, e.clientX, e.clientY, p, h)
-                        }
-                        )),
+                        })),
                         window.addEventListener("touchmove", (e => {
                             if (v) {
                                 const t = Array.from(e.touches).find((e => e.target.closest("#left-joystick")));
@@ -598,24 +726,16 @@
                                 const t = Array.from(e.touches).find((e => e.target.closest("#right-joystick")));
                                 t && E(u, f, t.clientX, t.clientY, p, h)
                             }
-                        }
-                        )),
-                        window.addEventListener("mouseup", ( () => {
-                            v && (v = !1,
-                            w(r, g)),
-                            y && (y = !1,
-                            w(f, h))
-                        }
-                        )),
+                        })),
+                        window.addEventListener("mouseup", (() => {
+                            v && (v = !1, w(r, g)),
+                            y && (y = !1, w(f, h))
+                        })),
                         window.addEventListener("touchend", (e => {
-                            v && (Array.from(e.touches).some((e => e.target.closest("#left-joystick"))) || (v = !1,
-                            w(r, g))),
-                            y && (Array.from(e.touches).some((e => e.target.closest("#right-joystick"))) || (y = !1,
-                            w(f, h)))
-                        }
-                        ))
-                    }
-                    ))
+                            v && (Array.from(e.touches).some((e => e.target.closest("#left-joystick"))) || (v = !1, w(r, g))),
+                            y && (Array.from(e.touches).some((e => e.target.closest("#right-joystick"))) || (y = !1, w(f, h)))
+                        }))
+                    }))
                 </script>
             </div>
             <div class="global-column" style="max-width:500px;overflow:auto">
@@ -624,3 +744,4 @@
         </div>
     </body>
 </html>
+
