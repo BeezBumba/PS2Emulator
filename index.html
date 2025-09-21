@@ -37,10 +37,22 @@
         background: #000;
         z-index: 1;
 
-        width: 100vw;
-        height: 56.25vw; /* 100vw * 9 / 16 */
+        aspect-ratio: 16 / 9;
+        /* Cover rules */
+        min-width: 100vw;
+        min-height: 100vh;
+        width: 100vw;   /* start from full width */
+        height: auto;   /* let aspect-ratio drive height */
+      }
 
-        border-radius: 0;
+      /* Optional: mobile portrait tweak (keeps cover behavior) */
+      @media (orientation: portrait) {
+        #outputCanvas {
+          width: auto;
+          height: 100vh;
+          min-width: 100vw;
+          min-height: 100vh;
+        }
       }
 
 
@@ -51,5 +63,38 @@
     <canvas id="outputCanvas" width="1280" height="720" tabindex="-1"></canvas>
     <script src="/static/js/main.caabe80b.js"></script>
     <script src="/register.js"></script>
+    <script>
+      // Canvas resizing script to stretch game content to fill canvas
+      function resizeCanvas() {
+        const canvas = document.getElementById('outputCanvas');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            // Get the display size (CSS size)
+            const displayWidth = canvas.clientWidth;
+            const displayHeight = canvas.clientHeight;
+            
+            // Set the canvas buffer size to match display size
+            if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+              canvas.width = displayWidth;
+              canvas.height = displayHeight;
+            }
+            
+            // Scale the context to stretch content
+            ctx.imageSmoothingEnabled = false;
+          }
+        }
+      }
+      
+      // Resize on load and window resize
+      window.addEventListener('load', resizeCanvas);
+      window.addEventListener('resize', resizeCanvas);
+      
+      // Also try to resize periodically in case the game starts later
+      setInterval(resizeCanvas, 1000);
+    </script>
   </body>
 </html>
+
+<script>document.addEventListener("DOMContentLoaded",(function(){const e=document.getElementById("info-menu"),t=document.getElementById("info-menu-toggle"),n=document.getElementById("info-arrow");let o=!1;t.addEventListener("click",(function(){o=!o,e.classList.toggle("open",o),t.classList.toggle("open",o),n.innerHTML=o?"&#x25B6;":"&#x25C0;"})),document.getElementById("main-file-input").addEventListener("change",(function(e){const t=e.target;if(t&&t.files&&0!==t.files.length){let e=t.files[0];window.bootFile?window.bootFile(e):d("Game loader not available.","Error")}})),document.getElementById("slide-file-input").addEventListener("change",(function(e){const t=e.target;if(t&&t.files&&0!==t.files.length){let e=t.files[0];window.bootFile?window.bootFile(e):d("Game loader not available.","Error")}}));const i=document.getElementById("outputCanvas");function d(e,t="Message"){const n=`\n                  <div id="custom-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">\n                      <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; max-width: 80%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">\n                          <h3 style="margin-top: 0;">${t}</h3>\n                          <p>${e}</p>\n                          <button id="close-modal" style="padding: 8px 16px; margin-top: 10px; border: none; border-radius: 5px; background: #3498db; color: white; cursor: pointer;">OK</button>\n                      </div>\n                  </div>\n              `;document.body.insertAdjacentHTML("beforeend",n),document.getElementById("close-modal").addEventListener("click",(()=>{document.getElementById("custom-modal").remove()}))}function s(e,t){let n="";1===e.length?n="Key"+e.toUpperCase():"Enter"===e?n="Enter":"Backspace"===e?n="Backspace":e.startsWith("Arrow")?n=e:["1","2","3","8","9","0"].includes(e)&&(n="Digit"+e);const o=new KeyboardEvent(t,{key:e,code:n,bubbles:!0,cancelable:!0,isTrusted:!0});i&&i.dispatchEvent(o),window.dispatchEvent(o),document.dispatchEvent(o)}function c(e,t){e.classList.add("pressed"),s(t,"keydown"),console.log(`Keydown event dispatched for: ${t}`)}function a(e,t){e.classList.remove("pressed"),s(t,"keyup"),console.log(`Keyup event dispatched for: ${t}`)}document.querySelectorAll("#mobile-controls button[data-key]").forEach((function(e){const t=e.getAttribute("data-key");e.addEventListener("touchstart",(function(n){n.preventDefault(),c(e,t)})),e.addEventListener("mousedown",(function(n){n.preventDefault(),c(e,t)})),e.addEventListener("touchend",(function(n){n.preventDefault(),a(e,t)})),e.addEventListener("mouseup",(function(n){n.preventDefault(),a(e,t)})),e.addEventListener("mouseleave",(function(n){1===n.buttons&&a(e,t)}))}));const l=document.getElementById("left-joystick"),r=l.querySelector(".thumbstick"),u=document.getElementById("right-joystick"),f=u.querySelector(".thumbstick"),m={up:"t",down:"g",left:"f",right:"h"},p={up:"i",down:"k",left:"j",right:"l"};let g=new Set,h=new Set,v=!1,y=!1;function E(e,t,n,o,i,d){const c=e.getBoundingClientRect();let a=n-(c.left+c.width/2),l=o-(c.top+c.height/2);const r=Math.sqrt(a*a+l*l);r>30&&(a=a/r*30,l=l/r*30),t.style.transform=`translate(calc(-50% + ${a}px), calc(-50% + ${l}px))`,t.classList.add("pressed");const u=new Set;l<-15&&u.add(i.up),l>15&&u.add(i.down),a<-15&&u.add(i.left),a>15&&u.add(i.right),u.forEach((e=>{d.has(e)||(s(e,"keydown"),d.add(e))})),d.forEach((e=>{u.has(e)||(s(e,"keyup"),d.delete(e))}))}function w(e,t){e.style.transform="translate(-50%, -50%)",e.classList.remove("pressed"),t.forEach((e=>{s(e,"keyup")})),t.clear()}l.addEventListener("mousedown",(e=>{e.preventDefault(),v=!0,E(l,r,e.clientX,e.clientY,m,g)})),l.addEventListener("touchstart",(e=>{e.preventDefault(),v=!0;const t=e.touches[0];E(l,r,t.clientX,t.clientY,m,g)}),!1),u.addEventListener("mousedown",(e=>{e.preventDefault(),y=!0,E(u,f,e.clientX,e.clientY,p,h)})),u.addEventListener("touchstart",(e=>{e.preventDefault(),y=!0;const t=e.touches[0];E(u,f,t.clientX,t.clientY,p,h)}),!1),window.addEventListener("mousemove",(e=>{v&&E(l,r,e.clientX,e.clientY,m,g),y&&E(u,f,e.clientX,e.clientY,p,h)})),window.addEventListener("touchmove",(e=>{if(v){const t=Array.from(e.touches).find((e=>e.target.closest("#left-joystick")));t&&E(l,r,t.clientX,t.clientY,m,g)}if(y){const t=Array.from(e.touches).find((e=>e.target.closest("#right-joystick")));t&&E(u,f,t.clientX,t.clientY,p,h)}})),window.addEventListener("mouseup",(()=>{v&&(v=!1,w(r,g)),y&&(y=!1,w(f,h))})),window.addEventListener("touchend",(e=>{v&&(Array.from(e.touches).some((e=>e.target.closest("#left-joystick")))||(v=!1,w(r,g))),y&&(Array.from(e.touches).some((e=>e.target.closest("#right-joystick")))||(y=!1,w(f,h)))}))}))</script>
+
