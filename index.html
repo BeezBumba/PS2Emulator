@@ -10,13 +10,39 @@
     <link rel="manifest" href="/manifest.json"/>
     <title>Play!.js</title>
     <script defer src="/static/js/main.caabe80b.js"></script>
+    <script defer src="/register.js"></script>
     <link href="/static/css/main.5a525eca.css" rel="stylesheet">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #000; /* matches theme */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .canvas-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 100vw;
+        aspect-ratio: 16 / 9; /* change to 4 / 3 if you prefer */
+        background: #000;
+      }
+
+      .canvas-wrapper canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div class="global-row">
       <div class="global-column">
-        <div>
+        <div class="canvas-wrapper">
           <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
         </div>
         <div id="root"></div>
