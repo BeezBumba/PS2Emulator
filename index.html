@@ -4,42 +4,23 @@
     <meta charset="utf-8"/>
     <link rel="icon" href="/favicon.ico"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="theme-color" content="#ffffff"/>
+    <meta name="theme-color" content="#000000"/>
     <meta name="description" content="A PlayStation2 emulator for web browsers"/>
     <link rel="apple-touch-icon" href="/play-192.png"/>
     <link rel="manifest" href="/manifest.json"/>
     <title>Play!.js</title>
     <script defer src="/static/js/main.caabe80b.js"></script>
-    <link href="/static/css/main.5a525eca.css" rel="stylesheet"/>
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        background: #fff; /* white background */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      .stage {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-      }
-      #outputCanvas {
-        background: #000; /* keep canvas black for contrast */
-        width: 800px;     /* larger than default */
-        height: auto;
-        display: block;
-      }
-      #root {
-        display: none; /* hidden React mount point */
-      }
-    </style>
+    <link href="/static/css/main.5a525eca.css" rel="stylesheet">
   </head>
   <body>
-      <canvas id="outputCanvas" width="800" height="600" tabindex="-1"></canvas>
-      <div id="root"></div>
-    <script src="/register.js"></script>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div class="global-row">
+      <div class="global-column">
+        <div>
+          <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
+        </div>
+        <div id="root"></div>
+      </div>
+    </div>
   </body>
 </html>
