@@ -214,16 +214,17 @@
             #mobile-controls {
                 position: fixed;
                 left: 0;
-                bottom: -30%;
+                bottom: 0;
                 width: 100vw;
-                height: 100vh;
+                height: auto;
                 pointer-events: none;
                 z-index: 1000;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
+                justify-content: flex-end;
                 align-items: center;
                 transition: opacity 0.3s ease;
+                padding-bottom: 20px;
             }
 
             #mobile-controls.hidden {
@@ -252,7 +253,7 @@
                 display: flex;
                 align-items: center;
                 gap: 16px;
-                margin-bottom: 50px
+                margin-bottom: 20px
             }
 
             .mc-center-buttons button {
@@ -309,12 +310,18 @@
 
             .mc-actions {
                 width: 180px;
-                height: 180px;
+                height: 200px;
                 display: grid;
-                grid-template-areas: ". triangle ." "square cross circle" ". . .";
-                grid-template-columns: 1fr 1fr 1fr;
-                grid-template-rows: 1fr 1fr 1fr;
-                gap: 8px
+                grid-template-areas: 
+                    ". . triangle . ."
+                    ". square . circle ."
+                    ". . cross . ."
+                    ". . . . .";
+                grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+                grid-template-rows: 1fr 1fr 1fr 1fr;
+                gap: 4px;
+                align-items: center;
+                justify-items: center;
             }
 
             .mc-actions button {
@@ -328,26 +335,30 @@
 
             .mc-actions .triangle {
                 grid-area: triangle;
-                background: #2ecc71;
-                color: #fff
+                background: #333;
+                color: #3ee3a1;
+                border: 2px solid #555;
             }
 
             .mc-actions .square {
                 grid-area: square;
-                background: #e74c3c;
-                color: #fff
+                background: #333;
+                color: #ff69f8;
+                border: 2px solid #555;
             }
 
             .mc-actions .cross {
                 grid-area: cross;
-                background: #3498db;
-                color: #fff
+                background: #333;
+                color: #7db3e9;
+                border: 2px solid #555;
             }
 
             .mc-actions .circle {
                 grid-area: circle;
-                background: #e67e22;
-                color: #fff
+                background: #333;
+                color: #ff6666;
+                border: 2px solid #555;
             }
 
             .mc-shoulder-left,.mc-shoulder-right {
