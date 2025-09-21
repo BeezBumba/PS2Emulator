@@ -10,13 +10,11 @@
     <link rel="manifest" href="/manifest.json"/>
     <title>Play!</title>
     <style>
-      body {
+      html, body {
         margin: 0;
-        padding: 0;
-        width: 100vw;
-        height: 100vh;
+        height: 100%;
         background: #000;
-        overflow: hidden;
+        overflow: hidden; /* clip overflow when covering */
       }
       #root {
         position: absolute;
@@ -25,33 +23,30 @@
         transform: translateX(-50%);
         z-index: 2;
       }
+      /* Cover the viewport while locked to 16:9 */
       #outputCanvas {
-        display: block;
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-50%,-50%);
+        transform: translate(-50%, -50%);
         background: #000;
         z-index: 1;
-        width: 100vw;
-        height: 56.25vw;   /* 9/16 = 0.5625 → enforces 16:9 */
-        max-width: 100vw;
-        max-height: 100vh;
+
+        aspect-ratio: 16 / 9;
+        /* Cover rules */
+        min-width: 100vw;
+        min-height: 100vh;
+        width: 100vw;   /* start from full width */
+        height: auto;   /* let aspect-ratio drive height */
       }
-      @media (max-width: 900px) and (orientation:landscape) {
+
+      /* Optional: mobile portrait tweak (keeps cover behavior) */
+      @media (orientation: portrait) {
         #outputCanvas {
-          width: 100vw;
-          height: 56.25vw;
-          max-height: 100vh;
-          max-width: 100vw;
-        }
-      }
-      @media (max-width: 900px) and (orientation:portrait) {
-        #outputCanvas {
-          width: 100vw;
-          height: 100vw; /* fallback square in portrait */
-          max-height: 100vh;
-          max-width: 100vw;
+          width: auto;
+          height: 100vh;
+          min-width: 100vw;
+          min-height: 100vh;
         }
       }
     </style>
