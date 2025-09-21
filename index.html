@@ -1,62 +1,46 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="A PlayStation2 emulator for web browsers" />
-    <link rel="apple-touch-icon" href="/play-192.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <meta charset="utf-8"/>
+    <link rel="icon" href="/favicon.ico"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="theme-color" content="#ffffff"/>
+    <meta name="description" content="A PlayStation2 emulator for web browsers"/>
+    <link rel="apple-touch-icon" href="/play-192.png"/>
+    <link rel="manifest" href="/manifest.json"/>
     <title>Play!.js</title>
-
-    <!-- Core assets -->
     <script defer src="/static/js/main.caabe80b.js"></script>
-    <link href="/static/css/main.5a525eca.css" rel="stylesheet" />
-
+    <link href="/static/css/main.5a525eca.css" rel="stylesheet"/>
     <style>
-      html,
-      body {
+      html, body {
         height: 100%;
         margin: 0;
-        background: #000;
-        color: #fff;
+        background: #fff; /* white background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
-
-      /* Full-viewport centering */
       .stage {
-        display: grid;
-        place-items: center;
-        width: 100vw;
-        height: 100vh;
-        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
       }
-
-      /* Scale canvas up, keep aspect ratio, never overflow */
       #outputCanvas {
+        background: #000; /* keep canvas black for contrast */
+        width: 800px;     /* larger than default */
+        height: auto;
         display: block;
-        background: #000;
-        max-width: 100vw;
-        max-height: 100vh;
-        width: 100vw;   /* fills width */
-        height: auto;   /* scales height to keep aspect ratio */
-        image-rendering: pixelated; /* crisp scaling for low-res */
-        image-rendering: crisp-edges;
       }
-
-      /* If the canvas would be taller than the viewport, cap height */
-      @media (orientation: portrait) {
-        #outputCanvas {
-          width: auto;
-          height: 100vh; /* fills height */
-        }
+      #root {
+        display: none; /* hidden React mount point */
       }
     </style>
   </head>
-
   <body>
     <div class="stage">
-      <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
+      <canvas id="outputCanvas" width="800" height="600" tabindex="-1"></canvas>
+      <div id="root"></div>
     </div>
     <script src="/register.js"></script>
   </body>
