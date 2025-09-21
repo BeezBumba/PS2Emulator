@@ -480,7 +480,7 @@
                     <div style="padding:16px;background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
                         <h3>Play! License</h3>
                         <div>
-                            <p>Copyright (c) 2006-2014, Jean-Philip Desjardins All rights reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS\'\' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+                            <p>Copyright (c) 2006-2014, Jean-Philip Desjardins All rights reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
                         </div>
                     </div>
                 </aside>
@@ -508,7 +508,6 @@
                         </div>
                         <div class="mc-center-buttons">
                             <button data-key="Backspace">SELECT</button>
-                            <div style="width:20px;height:20px;background:#34495e;border-radius:50%;box-shadow:0 2px 8px #0004"></div>
                             <button data-key="Enter">START</button>
                         </div>
                         <div class="mc-right-column">
@@ -543,6 +542,9 @@
                 </div>
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
+                        // Get canvas element for proper event targeting
+                        const canvas = document.getElementById('outputCanvas');
+                        
                         // Touch controls toggle functionality
                         const touchControlsToggle = document.getElementById('touch-controls-toggle');
                         const touchControlsCheckbox = document.getElementById('touch-controls-checkbox');
@@ -619,134 +621,203 @@
                             }
                         });
 
-                        function s(e, t) {
-                            const n = new KeyboardEvent(t,{
-                                key: e,
-                                code: e,
-                                bubbles: !0
+                        // FIXED: Improved key event dispatch function
+                        function dispatchKeyEvent(key, eventType) {
+                            // Focus the canvas to ensure it receives the events
+                            canvas.focus();
+                            
+                            // Create keyboard event with proper properties
+                            const keyboardEvent = new KeyboardEvent(eventType, {
+                                key: key,
+                                code: key,
+                                bubbles: true,
+                                cancelable: true,
+                                composed: true
                             });
-                            document.dispatchEvent(n)
+                            
+                            // Dispatch to both canvas and document for maximum compatibility
+                            canvas.dispatchEvent(keyboardEvent);
+                            document.dispatchEvent(keyboardEvent);
                         }
-                        document.querySelectorAll("#mobile-controls button[data-key]").forEach((e => {
-                            const t = e.getAttribute("data-key");
-                            function n(e, n) {
-                                e.preventDefault(),
-                                n.classList.add("pressed"),
-                                s(t, "keydown")
+
+                        // FIXED: Enhanced button event handling
+                        document.querySelectorAll("#mobile-controls button[data-key]").forEach((button => {
+                            const key = button.getAttribute("data-key");
+                            
+                            function handleButtonPress(event, buttonElement) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                buttonElement.classList.add("pressed");
+                                dispatchKeyEvent(key, "keydown");
                             }
-                            function o(e, n) {
-                                e.preventDefault(),
-                                n.classList.remove("pressed"),
-                                s(t, "keyup")
+                            
+                            function handleButtonRelease(event, buttonElement) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                buttonElement.classList.remove("pressed");
+                                dispatchKeyEvent(key, "keyup");
                             }
-                            function i(e, t) {
-                                e.preventDefault(),
-                                t.classList.remove("pressed"),
-                                s(t, "keyup")
+                            
+                            function handleButtonLeave(event, buttonElement) {
+                                if (event.buttons === 1) {
+                                    event.preventDefault();
+                                    buttonElement.classList.remove("pressed");
+                                    dispatchKeyEvent(key, "keyup");
+                                }
                             }
-                            e.addEventListener("mousedown", (t => n(t, e))),
-                            e.addEventListener("touchstart", (t => n(t, e)), !1),
-                            e.addEventListener("mouseup", (t => o(t, e))),
-                            e.addEventListener("touchend", (t => o(t, e)), !1),
-                            e.addEventListener("mouseleave", (function(n) {
-                                1 === n.buttons && i(n, e)
-                            }))
+                            
+                            // Mouse events
+                            button.addEventListener("mousedown", (event => handleButtonPress(event, button)));
+                            button.addEventListener("mouseup", (event => handleButtonRelease(event, button)));
+                            button.addEventListener("mouseleave", (event => handleButtonLeave(event, button)));
+                            
+                            // Touch events
+                            button.addEventListener("touchstart", (event => handleButtonPress(event, button)), { passive: false });
+                            button.addEventListener("touchend", (event => handleButtonRelease(event, button)), { passive: false });
                         }));
-                        const l = document.getElementById("left-joystick"),
-                            r = l.querySelector(".thumbstick"),
-                            u = document.getElementById("right-joystick"),
-                            f = u.querySelector(".thumbstick"),
-                            m = {
+
+                        // Joystick functionality (unchanged but with improved event dispatch)
+                        const leftJoystick = document.getElementById("left-joystick"),
+                            leftThumbstick = leftJoystick.querySelector(".thumbstick"),
+                            rightJoystick = document.getElementById("right-joystick"),
+                            rightThumbstick = rightJoystick.querySelector(".thumbstick"),
+                            leftJoystickKeys = {
                                 up: "t",
                                 down: "g",
                                 left: "f",
                                 right: "h"
                             },
-                            p = {
+                            rightJoystickKeys = {
                                 up: "i",
                                 down: "k",
                                 left: "j",
                                 right: "l"
                             };
-                        let g = new Set,
-                            h = new Set,
-                            v = !1,
-                            y = !1;
                         
-                        function E(e, t, n, o, i, d) {
-                            const c = e.getBoundingClientRect();
-                            let a = n - (c.left + c.width / 2),
-                                l = o - (c.top + c.height / 2);
-                            const r = Math.sqrt(a * a + l * l);
-                            r > 30 && (a = a / r * 30, l = l / r * 30),
-                            t.style.transform = `translate(calc(-50% + ${a}px), calc(-50% + ${l}px))`,
-                            t.classList.add("pressed");
-                            const u = new Set;
-                            l < -15 && u.add(i.up),
-                            l > 15 && u.add(i.down),
-                            a < -15 && u.add(i.left),
-                            a > 15 && u.add(i.right),
-                            u.forEach((e => {
-                                d.has(e) || (s(e, "keydown"), d.add(e))
-                            })),
-                            d.forEach((e => {
-                                u.has(e) || (s(e, "keyup"), d.delete(e))
-                            }))
+                        let leftActiveKeys = new Set,
+                            rightActiveKeys = new Set,
+                            leftJoystickActive = false,
+                            rightJoystickActive = false;
+                        
+                        function updateJoystick(joystick, thumbstick, clientX, clientY, keyMap, activeKeys) {
+                            const rect = joystick.getBoundingClientRect();
+                            let deltaX = clientX - (rect.left + rect.width / 2),
+                                deltaY = clientY - (rect.top + rect.height / 2);
+                            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                            
+                            if (distance > 30) {
+                                deltaX = deltaX / distance * 30;
+                                deltaY = deltaY / distance * 30;
+                            }
+                            
+                            thumbstick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+                            thumbstick.classList.add("pressed");
+                            
+                            const newActiveKeys = new Set;
+                            if (deltaY < -15) newActiveKeys.add(keyMap.up);
+                            if (deltaY > 15) newActiveKeys.add(keyMap.down);
+                            if (deltaX < -15) newActiveKeys.add(keyMap.left);
+                            if (deltaX > 15) newActiveKeys.add(keyMap.right);
+                            
+                            newActiveKeys.forEach((key => {
+                                if (!activeKeys.has(key)) {
+                                    dispatchKeyEvent(key, "keydown");
+                                    activeKeys.add(key);
+                                }
+                            }));
+                            
+                            activeKeys.forEach((key => {
+                                if (!newActiveKeys.has(key)) {
+                                    dispatchKeyEvent(key, "keyup");
+                                    activeKeys.delete(key);
+                                }
+                            }));
                         }
                         
-                        function w(e, t) {
-                            e.style.transform = "translate(-50%, -50%)",
-                            e.classList.remove("pressed"),
-                            t.forEach((e => {
-                                s(e, "keyup")
-                            })),
-                            t.clear()
+                        function resetJoystick(thumbstick, activeKeys) {
+                            thumbstick.style.transform = "translate(-50%, -50%)";
+                            thumbstick.classList.remove("pressed");
+                            activeKeys.forEach((key => {
+                                dispatchKeyEvent(key, "keyup");
+                            }));
+                            activeKeys.clear();
                         }
                         
-                        l.addEventListener("mousedown", (e => {
-                            e.preventDefault(),
-                            v = !0,
-                            E(l, r, e.clientX, e.clientY, m, g)
-                        })),
-                        l.addEventListener("touchstart", (e => {
-                            e.preventDefault(),
-                            v = !0;
-                            const t = e.touches[0];
-                            E(l, r, t.clientX, t.clientY, m, g)
-                        }), !1),
-                        u.addEventListener("mousedown", (e => {
-                            e.preventDefault(),
-                            y = !0,
-                            E(u, f, e.clientX, e.clientY, p, h)
-                        })),
-                        u.addEventListener("touchstart", (e => {
-                            e.preventDefault(),
-                            y = !0;
-                            const t = e.touches[0];
-                            E(u, f, t.clientX, t.clientY, p, h)
-                        }), !1),
-                        window.addEventListener("mousemove", (e => {
-                            v && E(l, r, e.clientX, e.clientY, m, g),
-                            y && E(u, f, e.clientX, e.clientY, p, h)
-                        })),
-                        window.addEventListener("touchmove", (e => {
-                            if (v) {
-                                const t = Array.from(e.touches).find((e => e.target.closest("#left-joystick")));
-                                t && E(l, r, t.clientX, t.clientY, m, g)
+                        // Left joystick events
+                        leftJoystick.addEventListener("mousedown", (event => {
+                            event.preventDefault();
+                            leftJoystickActive = true;
+                            updateJoystick(leftJoystick, leftThumbstick, event.clientX, event.clientY, leftJoystickKeys, leftActiveKeys);
+                        }));
+                        
+                        leftJoystick.addEventListener("touchstart", (event => {
+                            event.preventDefault();
+                            leftJoystickActive = true;
+                            const touch = event.touches[0];
+                            updateJoystick(leftJoystick, leftThumbstick, touch.clientX, touch.clientY, leftJoystickKeys, leftActiveKeys);
+                        }), { passive: false });
+                        
+                        // Right joystick events
+                        rightJoystick.addEventListener("mousedown", (event => {
+                            event.preventDefault();
+                            rightJoystickActive = true;
+                            updateJoystick(rightJoystick, rightThumbstick, event.clientX, event.clientY, rightJoystickKeys, rightActiveKeys);
+                        }));
+                        
+                        rightJoystick.addEventListener("touchstart", (event => {
+                            event.preventDefault();
+                            rightJoystickActive = true;
+                            const touch = event.touches[0];
+                            updateJoystick(rightJoystick, rightThumbstick, touch.clientX, touch.clientY, rightJoystickKeys, rightActiveKeys);
+                        }), { passive: false });
+                        
+                        // Global mouse/touch move events
+                        window.addEventListener("mousemove", (event => {
+                            if (leftJoystickActive) {
+                                updateJoystick(leftJoystick, leftThumbstick, event.clientX, event.clientY, leftJoystickKeys, leftActiveKeys);
                             }
-                            if (y) {
-                                const t = Array.from(e.touches).find((e => e.target.closest("#right-joystick")));
-                                t && E(u, f, t.clientX, t.clientY, p, h)
+                            if (rightJoystickActive) {
+                                updateJoystick(rightJoystick, rightThumbstick, event.clientX, event.clientY, rightJoystickKeys, rightActiveKeys);
                             }
-                        })),
+                        }));
+                        
+                        window.addEventListener("touchmove", (event => {
+                            if (leftJoystickActive) {
+                                const leftTouch = Array.from(event.touches).find((touch => touch.target.closest("#left-joystick")));
+                                if (leftTouch) {
+                                    updateJoystick(leftJoystick, leftThumbstick, leftTouch.clientX, leftTouch.clientY, leftJoystickKeys, leftActiveKeys);
+                                }
+                            }
+                            if (rightJoystickActive) {
+                                const rightTouch = Array.from(event.touches).find((touch => touch.target.closest("#right-joystick")));
+                                if (rightTouch) {
+                                    updateJoystick(rightJoystick, rightThumbstick, rightTouch.clientX, rightTouch.clientY, rightJoystickKeys, rightActiveKeys);
+                                }
+                            }
+                        }));
+                        
+                        // Global mouse/touch end events
                         window.addEventListener("mouseup", (() => {
-                            v && (v = !1, w(r, g)),
-                            y && (y = !1, w(f, h))
-                        })),
-                        window.addEventListener("touchend", (e => {
-                            v && (Array.from(e.touches).some((e => e.target.closest("#left-joystick"))) || (v = !1, w(r, g))),
-                            y && (Array.from(e.touches).some((e => e.target.closest("#right-joystick"))) || (y = !1, w(f, h)))
-                        }))
+                            if (leftJoystickActive) {
+                                leftJoystickActive = false;
+                                resetJoystick(leftThumbstick, leftActiveKeys);
+                            }
+                            if (rightJoystickActive) {
+                                rightJoystickActive = false;
+                                resetJoystick(rightThumbstick, rightActiveKeys);
+                            }
+                        }));
+                        
+                        window.addEventListener("touchend", (event => {
+                            if (leftJoystickActive && !Array.from(event.touches).some((touch => touch.target.closest("#left-joystick")))) {
+                                leftJoystickActive = false;
+                                resetJoystick(leftThumbstick, leftActiveKeys);
+                            }
+                            if (rightJoystickActive && !Array.from(event.touches).some((touch => touch.target.closest("#right-joystick")))) {
+                                rightJoystickActive = false;
+                                resetJoystick(rightThumbstick, rightActiveKeys);
+                            }
+                        }));
                     }))
                 </script>
             </div>
@@ -756,4 +827,3 @@
         </div>
     </body>
 </html>
-
