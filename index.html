@@ -86,53 +86,10 @@
                 }
             }
 
-            #info-menu-toggle {
-                position: fixed;
-                top: 32px;
-                right: 0;
-                z-index: 2001;
-                background: #222;
-                color: #fff;
-                border: none;
-                border-radius: 8px 0 0 8px;
-                box-shadow: 0 2px 8px #0004;
-                padding: 8px 12px;
-                cursor: pointer;
-                transition: right .3s
-            }
-
-            #info-menu {
-                position: fixed;
-                top: 0;
-                right: -340px;
-                width: 320px;
-                height: 100vh;
-                background: #f8f8f8;
-                box-shadow: -2px 0 16px #0002;
-                z-index: 2000;
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-                transition: right .3s;
-                overflow-y: auto
-            }
-
-            #info-menu.open {
-                right: 0
-            }
-
-            #info-menu-toggle.open {
-                right: 320px
-            }
-
-            #info-arrow {
-                transition: transform .3s
-            }
-
             /* Touch controls toggle button */
             #touch-controls-toggle {
                 position: fixed;
-                top: 80px;
+                top: 32px;
                 right: 0;
                 z-index: 2001;
                 background: #222;
@@ -146,82 +103,10 @@
                 font-size: 1.2em;
             }
 
-            #touch-controls-toggle.open {
-                right: 320px;
-            }
-
-            /* File input overlay */
-            #file-input-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0, 0, 0, 0.8);
-                z-index: 2500;
-                display: none;
-                align-items: center;
-                justify-content: center;
-            }
-
-            #file-input-overlay.show {
-                display: flex;
-            }
-
-            .file-input-modal {
-                background: #fff;
-                border-radius: 12px;
-                padding: 24px;
-                max-width: 400px;
-                width: 90%;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            }
-
-            .file-input-modal h3 {
-                margin: 0 0 16px 0;
-                color: #333;
-            }
-
-            .file-input-modal p {
-                margin: 0 0 16px 0;
-                color: #666;
-                font-size: 0.9em;
-            }
-
-            .file-input-modal input[type="file"] {
-                width: 100%;
-                margin-bottom: 16px;
-                padding: 8px;
-                border: 2px solid #ddd;
-                border-radius: 4px;
-            }
-
-            .file-input-modal .button-group {
-                display: flex;
-                gap: 8px;
-                justify-content: flex-end;
-            }
-
-            .file-input-modal button {
-                padding: 8px 16px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 0.9em;
-            }
-
-            .file-input-modal .cancel-btn {
-                background: #ccc;
-                color: #333;
-            }
-
-            .file-input-modal .cancel-btn:hover {
-                background: #bbb;
-            }
-
-            /* Touch controls visibility */
+            /* Touch controls visibility - FIXED: Complete transparency and disabled interaction */
             #mobile-controls.hidden {
-                opacity: 0.1;
+                opacity: 0;
+                pointer-events: none;
                 transition: opacity 0.3s ease;
             }
 
@@ -441,49 +326,9 @@
                         <input type="file" id="main-file-input" style="width:100%;max-width:320px"/>
                     </div>
                 </div>
-                <button id="info-menu-toggle" aria-label="Open info menu">
-                    <span id="info-arrow" style="font-size:2em">&#x25C0;</span>
-                </button>
                 <button id="touch-controls-toggle" aria-label="Toggle touch controls">
                     🎮
                 </button>
-                <aside id="info-menu">
-                    <div style="padding:16px;background:#222;color:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
-                        <h1 style="font-size:2em;margin-bottom:.2em">Play!</h1>
-                        <div style="margin:16px 0">
-                            <label style="font-weight:700;display:block;margin-bottom:8px">Choose a game file:</label>
-                            <p>
-                                ISO, CSO, CHD, ISZ, BIN, and EL are supported. <br>
-                                <br>This was created to allow people to use Play! on iOS devices without needing to jailbreak or sideload the app on their phone.
-                            </p>
-                            <button id="choose-file-btn" style="width:100%;max-width:240px;padding:8px 16px;background:#444;color:#fff;border:none;border-radius:4px;cursor:pointer;">Choose File</button>
-                        </div>
-                        <div style="margin:16px 0">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                                <input type="checkbox" id="touch-controls-checkbox" style="margin:0;">
-                                <span>Show touch controls on mobile</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div style="padding:16px;background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
-                        <h3>Links</h3>
-                        <div>
-                            <a href="https://purei.org" target="blank">Official Website</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/jpd002/Play-" target="blank">Source Code</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/jpd002/Play-Compatibility/issues" target="blank">Compatibility List</a>
-                        </div>
-                    </div>
-                    <div style="padding:16px;background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px #0002">
-                        <h3>Play! License</h3>
-                        <div>
-                            <p>Copyright (c) 2006-2014, Jean-Philip Desjardins All rights reserved. Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
-                        </div>
-                    </div>
-                </aside>
                 <div id="root"></div>
                 <div id="mobile-controls">
                     <div class="mc-grid-container">
@@ -530,29 +375,14 @@
                         </div>
                     </div>
                 </div>
-                <div id="file-input-overlay">
-                    <div class="file-input-modal">
-                        <h3>Choose Game File</h3>
-                        <p>Select a PlayStation 2 game file to load. Supported formats: ISO, CSO, CHD, ISZ, BIN, ELF</p>
-                        <input type="file" id="overlay-file-input" accept=".iso,.cso,.chd,.isz,.bin,.elf">
-                        <div class="button-group">
-                            <button class="cancel-btn" id="cancel-file-btn">Cancel</button>
-                        </div>
-                    </div>
-                </div>
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
-                        // Touch controls toggle functionality
+                        // Touch controls toggle functionality - FIXED: Complete hide/show with disabled interaction
                         const touchControlsToggle = document.getElementById('touch-controls-toggle');
-                        const touchControlsCheckbox = document.getElementById('touch-controls-checkbox');
                         const mobileControls = document.getElementById('mobile-controls');
-                        const infoMenuToggle = document.getElementById('info-menu-toggle');
-                        const infoMenu = document.getElementById('info-menu');
-                        const infoArrow = document.getElementById('info-arrow');
 
                         // Load saved preference
                         const showTouchControls = localStorage.getItem('showTouchControls') !== 'false';
-                        touchControlsCheckbox.checked = showTouchControls;
                         if (!showTouchControls) {
                             mobileControls.classList.add('hidden');
                         }
@@ -560,63 +390,10 @@
                         function toggleTouchControls() {
                             const isVisible = !mobileControls.classList.contains('hidden');
                             mobileControls.classList.toggle('hidden');
-                            touchControlsCheckbox.checked = !isVisible;
                             localStorage.setItem('showTouchControls', !isVisible);
                         }
 
                         touchControlsToggle.addEventListener('click', toggleTouchControls);
-                        touchControlsCheckbox.addEventListener('change', toggleTouchControls);
-
-                        // Info menu toggle functionality
-                        infoMenuToggle.addEventListener('click', function() {
-                            const isOpen = infoMenu.classList.contains('open');
-                            infoMenu.classList.toggle('open');
-                            infoMenuToggle.classList.toggle('open');
-                            touchControlsToggle.classList.toggle('open');
-                            infoArrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-                        });
-
-                        // File input overlay functionality
-                        const chooseFileBtn = document.getElementById('choose-file-btn');
-                        const fileInputOverlay = document.getElementById('file-input-overlay');
-                        const cancelFileBtn = document.getElementById('cancel-file-btn');
-                        const overlayFileInput = document.getElementById('overlay-file-input');
-                        const mainFileInput = document.getElementById('main-file-input');
-
-                        function showFileOverlay() {
-                            fileInputOverlay.classList.add('show');
-                        }
-
-                        function hideFileOverlay() {
-                            fileInputOverlay.classList.remove('show');
-                            overlayFileInput.value = '';
-                        }
-
-                        chooseFileBtn.addEventListener('click', showFileOverlay);
-                        cancelFileBtn.addEventListener('click', hideFileOverlay);
-
-                        // Close overlay when clicking outside
-                        fileInputOverlay.addEventListener('click', function(e) {
-                            if (e.target === fileInputOverlay) {
-                                hideFileOverlay();
-                            }
-                        });
-
-                        // Transfer file selection to main input
-                        overlayFileInput.addEventListener('change', function() {
-                            if (this.files.length > 0) {
-                                // Create a new FileList with the selected file
-                                const dt = new DataTransfer();
-                                dt.items.add(this.files[0]);
-                                mainFileInput.files = dt.files;
-                                
-                                // Trigger change event on main input
-                                const changeEvent = new Event('change', { bubbles: true });
-                                mainFileInput.dispatchEvent(changeEvent);
-                                
-                                hideFileOverlay();
-                            }
-                        });
 
                         // COPIED EXACT BUTTON LOGIC FROM WORKING FILE
                         const i = document.getElementById("outputCanvas");
@@ -629,6 +406,11 @@
                             ))
                         }
                         function s(e, t) {
+                            // FIXED: Don't dispatch events if controls are hidden
+                            if (mobileControls.classList.contains('hidden')) {
+                                return;
+                            }
+                            
                             let n = "";
                             1 === e.length ? n = "Key" + e.toUpperCase() : "Enter" === e ? n = "Enter" : "Backspace" === e ? n = "Backspace" : e.startsWith("Arrow") ? n = e : ["1", "2", "3", "8", "9", "0"].includes(e) && (n = "Digit" + e);
                             const o = new KeyboardEvent(t,{
@@ -643,11 +425,21 @@
                             document.dispatchEvent(o)
                         }
                         function c(e, t) {
+                            // FIXED: Don't add pressed class or dispatch events if controls are hidden
+                            if (mobileControls.classList.contains('hidden')) {
+                                return;
+                            }
+                            
                             e.classList.add("pressed"),
                             s(t, "keydown"),
                             console.log(`Keydown event dispatched for: ${t}`)
                         }
                         function a(e, t) {
+                            // FIXED: Don't remove pressed class or dispatch events if controls are hidden
+                            if (mobileControls.classList.contains('hidden')) {
+                                return;
+                            }
+                            
                             e.classList.remove("pressed"),
                             s(t, "keyup"),
                             console.log(`Keyup event dispatched for: ${t}`)
@@ -701,6 +493,11 @@
                           , v = !1
                           , y = !1;
                         function E(e, t, n, o, i, d) {
+                            // FIXED: Don't update joystick if controls are hidden
+                            if (mobileControls.classList.contains('hidden')) {
+                                return;
+                            }
+                            
                             const c = e.getBoundingClientRect();
                             let a = n - (c.left + c.width / 2)
                               , l = o - (c.top + c.height / 2);
