@@ -53,25 +53,25 @@
                 background: #000;
             }
 
-            /* FIXED: React file input positioning */
+            /* FIXED: React file input positioning - moved to bottom-left */
             #root {
                 position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
+                bottom: 20px;
+                left: 20px;
                 z-index: 10;
                 pointer-events: auto;
             }
 
             #root > div {
-                background: rgba(0, 0, 0, 0.8);
-                padding: 12px 16px;
-                border-radius: 8px;
+                background: rgba(0, 0, 0, 0.9);
+                padding: 8px 12px;
+                border-radius: 6px;
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                border: 1px solid #444;
+                gap: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+                border: 1px solid #555;
+                font-size: 12px;
             }
 
             #root input[type="file"] {
@@ -79,21 +79,22 @@
                 color: #fff;
                 border: 1px solid #666;
                 border-radius: 4px;
-                padding: 6px 10px;
-                font-size: 14px;
+                padding: 4px 8px;
+                font-size: 11px;
                 cursor: pointer;
                 font-family: inherit;
+                max-width: 120px;
             }
 
             #root input[type="file"]::-webkit-file-upload-button {
                 background: #555;
                 color: #fff;
                 border: none;
-                border-radius: 3px;
-                padding: 4px 8px;
-                margin-right: 8px;
+                border-radius: 2px;
+                padding: 2px 6px;
+                margin-right: 6px;
                 cursor: pointer;
-                font-size: 12px;
+                font-size: 10px;
             }
 
             #root input[type="file"]:hover {
@@ -103,7 +104,7 @@
 
             #root .stats, #root .version {
                 color: #ccc;
-                font-size: 12px;
+                font-size: 10px;
                 font-family: monospace;
                 white-space: nowrap;
             }
@@ -114,6 +115,9 @@
 
             #root .version {
                 color: #2196F3;
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             #outputCanvas {
