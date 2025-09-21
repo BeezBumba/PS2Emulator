@@ -23,115 +23,148 @@
         align-items: center;
       }
 
-  .canvas-wrapper {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #000;
-  overflow: hidden; /* ensures no accidental scrollbars */
-}
+      .canvas-wrapper {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #000;
+        overflow: hidden; /* ensures no accidental scrollbars */
+      }
 
-.canvas-wrapper canvas {
-  width: 90vw;   /* slightly smaller than full width */
-  height: 90vh;  /* slightly smaller than full height */
-  object-fit: contain; /* preserves aspect ratio */
-  display: block;
-}
+      .canvas-wrapper canvas {
+        width: 90vw;   /* slightly smaller than full width */
+        height: 90vh;  /* slightly smaller than full height */
+        object-fit: contain; /* preserves aspect ratio */
+        display: block;
+      }
     </style>
   </head>
   <body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div class="global-row">
-    <div class="global-column">
-      <div class="canvas-wrapper">
-        <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div class="global-row">
+      <div class="global-column">
+        <div class="canvas-wrapper">
+          <canvas id="outputCanvas" width="640" height="480" tabindex="-1"></canvas>
+        </div>
+        <div id="root"></div>
       </div>
-      <div id="root"></div>
     </div>
-  </div>
 
-  <!-- Debugging UI -->
-  <div id="debug-panel" style="position:fixed;bottom:0;left:0;
-       background:#111;color:#0f0;font-family:monospace;
-       padding:10px;max-height:40%;overflow:auto;font-size:12px;">
-    <button id="logGamepad">Log Gamepad State</button>
-    <div id="gamepadState">No input yet…</div>
-  </div>
+    <!-- Debugging UI -->
+    <div id="debug-panel" style="
+         position:fixed;
+         top:10px; right:10px;
+         background:#111;
+         color:#0f0;
+         font-family:monospace;
+         padding:10px;
+         max-width:300px;
+         max-height:40%;
+         overflow:auto;
+         font-size:12px;
+         border:1px solid #0f0;
+         z-index:9999;">
+      <button id="toggleDebug">Hide</button>
+      <button id="logGamepad">Log Gamepad State</button>
+      <div id="gamepadState">No input yet…</div>
+    </div>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const stateDiv = document.getElementById("gamepadState");
-    const logBtn = document.getElementById("logGamepad");
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const panel = document.getElementById("debug-panel");
+      const toggleBtn = document.getElementById("toggleDebug");
+      const logBtn = document.getElementById("logGamepad");
+      const stateDiv = document.getElementById("gamepadState");
 
-    const keyMap = {
-      12: "ArrowUp", 13: "ArrowDown", 14: "ArrowLeft", 15: "ArrowRight",
-      2: "KeyA", 0: "KeyZ", 3: "KeyS", 1: "KeyX",
-      9: "Enter", 8: "Backspace",
-      4: "Digit1", 6: "Digit2", 10: "Digit3",
-      5: "Digit8", 7: "Digit9", 11: "Digit0"
-    };
+      const keyMap = {
+        12: "ArrowUp", 13: "ArrowDown", 14: "ArrowLeft", 15: "ArrowRight",
+        2: "KeyA", 0: "KeyZ", 3: "KeyS", 1: "KeyX",
+        9: "Enter", 8: "Backspace",
+        4: "Digit1", 6: "Digit2", 10: "Digit3",
+        5: "Digit8", 7: "Digit9", 11: "Digit0"
+      };
 
-    const pressed = {};
+      const pressed = {};
 
-    function sendKey(code, down) {
-      if (pressed[code] === down) return;
-      pressed[code] = down;
-      const evt = new KeyboardEvent(down ? "keydown" : "keyup", {
-        code,
-        key: code,
-        bubbles: true
-      });
-      window.dispatchEvent(evt);
-      // Debug output
-      stateDiv.innerText = `Sent ${down ? "DOWN" : "UP"}: ${code}`;
-    }
-
-    function handleAxes(axes) {
-      // Left stick
-      if (axes[0] < -0.5) sendKey("KeyF", true);
-      else if (axes[0] > 0.5) sendKey("KeyH", true);
-      else { sendKey("KeyF", false); sendKey("KeyH", false); }
-
-      if (axes[1] < -0.5) sendKey("KeyT", true);
-      else if (axes[1] > 0.5) sendKey("KeyG", true);
-      else { sendKey("KeyT", false); sendKey("KeyG", false); }
-
-      // Right stick
-      if (axes[2] < -0.5) sendKey("KeyJ", true);
-      else if (axes[2] > 0.5) sendKey("KeyL", true);
-      else { sendKey("KeyJ", false); sendKey("KeyL", false); }
-
-      if (axes[3] < -0.5) sendKey("KeyI", true);
-      else if (axes[3] > 0.5) sendKey("KeyK", true);
-      else { sendKey("KeyI", false); sendKey("KeyK", false); }
-    }
-
-    function pollGamepads() {
-      const pads = navigator.getGamepads();
-      for (const pad of pads) {
-        if (!pad) continue;
-        pad.buttons.forEach((btn, i) => {
-          if (keyMap[i]) sendKey(keyMap[i], btn.pressed);
+      function sendKey(code, down) {
+        if (pressed[code] === down) return;
+        pressed[code] = down;
+        const evt = new KeyboardEvent(down ? "keydown" : "keyup", {
+          code,
+          key: code,
+          bubbles: true
         });
-        handleAxes(pad.axes);
+        window.dispatchEvent(evt);
+        // Debug output
+        stateDiv.innerText = `Sent ${down ? "DOWN" : "UP"}: ${code}`;
       }
-      requestAnimationFrame(pollGamepads);
-    }
 
-    window.addEventListener("gamepadconnected", (e) => {
-      stateDiv.innerText = `Gamepad connected: ${e.gamepad.id}`;
-      pollGamepads();
-    });
+      function handleAxes(axes) {
+        // Left stick
+        if (axes[0] < -0.5) sendKey("KeyF", true);
+        else if (axes[0] > 0.5) sendKey("KeyH", true);
+        else { sendKey("KeyF", false); sendKey("KeyH", false); }
 
-    logBtn.addEventListener("click", () => {
-      const pads = navigator.getGamepads();
-      stateDiv.innerText = JSON.stringify(pads[0], null, 2);
-      console.log(pads[0]);
+        if (axes[1] < -0.5) sendKey("KeyT", true);
+        else if (axes[1] > 0.5) sendKey("KeyG", true);
+        else { sendKey("KeyT", false); sendKey("KeyG", false); }
+
+        // Right stick
+        if (axes[2] < -0.5) sendKey("KeyJ", true);
+        else if (axes[2] > 0.5) sendKey("KeyL", true);
+        else { sendKey("KeyJ", false); sendKey("KeyL", false); }
+
+        if (axes[3] < -0.5) sendKey("KeyI", true);
+        else if (axes[3] > 0.5) sendKey("KeyK", true);
+        else { sendKey("KeyI", false); sendKey("KeyK", false); }
+      }
+
+      function pollGamepads() {
+        const pads = navigator.getGamepads();
+        for (const pad of pads) {
+          if (!pad) continue;
+          pad.buttons.forEach((btn, i) => {
+            if (keyMap[i]) sendKey(keyMap[i], btn.pressed);
+          });
+          handleAxes(pad.axes);
+        }
+        requestAnimationFrame(pollGamepads);
+      }
+
+      window.addEventListener("gamepadconnected", (e) => {
+        stateDiv.innerText = `Gamepad connected: ${e.gamepad.id}`;
+        pollGamepads();
+      });
+
+      logBtn.addEventListener("click", () => {
+        const pads = navigator.getGamepads();
+        stateDiv.innerText = JSON.stringify(pads[0], null, 2);
+        console.log(pads[0]);
+      });
+
+      // Toggle button
+      toggleBtn.addEventListener("click", () => {
+        if (stateDiv.style.display === "none") {
+          stateDiv.style.display = "block";
+          logBtn.style.display = "inline-block";
+          toggleBtn.textContent = "Hide";
+        } else {
+          stateDiv.style.display = "none";
+          logBtn.style.display = "none";
+          toggleBtn.textContent = "Show";
+        }
+      });
+
+      // Keyboard shortcut: press "~" to toggle panel
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "`" || e.key === "~") {
+          panel.style.display = (panel.style.display === "none") ? "block" : "none";
+        }
+      });
     });
-  });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
