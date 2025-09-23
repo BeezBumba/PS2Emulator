@@ -8,6 +8,7 @@ const URLS_TO_CACHE = [
   '/play-512.png',
   '/index.html',
   '/manifest.json',
+  '/gl2gpu.js',
   '/static/js/main.caabe80b.js',
   '/static/css/main.5a525eca.css'
 ];
