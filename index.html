@@ -629,6 +629,7 @@
                         let nextPlayerSlot = 1; // Next available player slot
                         let previousButtonStates = {};
                         let previousAxisStates = {};
+                        let activeAxisKeys = {}; // Track which keys are currently pressed for each axis
                         
                         // Enhanced PlayStation Controller Detection
                         function isPlayStationController(gamepad) {
@@ -833,6 +834,7 @@
                             console.log(`Controller ${controllerIndex} (${controllerType}, Player ${playerNum}): Button ${buttonIndex} ${pressed ? 'pressed' : 'released'} -> ${key}`);
                         }
                         
+                        // FIXED: Proper analog stick handling
                         function handleControllerAxis(controllerIndex, axisIndex, value) {
                             const playerNum = controllerPlayerMapping[controllerIndex];
                             if (!playerNum) return;
@@ -840,7 +842,7 @@
                             const playerKey = playerNum === 1 ? 'player1' : 'player2';
                             const analogMapping = ANALOG_MAPPING[playerKey];
                             
-                            const deadzone = 0.25; // Slightly reduced deadzone for better responsiveness
+                            const deadzone = 0.25;
                             let stickMapping = null;
                             
                             // Determine which stick and axis
@@ -854,44 +856,51 @@
                             
                             if (!stickMapping) return;
                             
-                            // Get previous axis state
-                            if (!previousAxisStates[controllerIndex]) {
-                                previousAxisStates[controllerIndex] = {};
+                            // Initialize tracking for this controller and axis
+                            if (!activeAxisKeys[controllerIndex]) {
+                                activeAxisKeys[controllerIndex] = {};
                             }
-                            const prevValue = previousAxisStates[controllerIndex][axisIndex] || 0;
+                            if (!activeAxisKeys[controllerIndex][axisIndex]) {
+                                activeAxisKeys[controllerIndex][axisIndex] = new Set();
+                            }
+                            
+                            const currentKeys = activeAxisKeys[controllerIndex][axisIndex];
+                            const newKeys = new Set();
                             
                             // Handle horizontal axis (0 = left stick X, 2 = right stick X)
                             if (axisIndex === 0 || axisIndex === 2) {
-                                // Release previous keys if axis changed significantly
-                                if (Math.abs(value - prevValue) > 0.1) {
-                                    simulateKeyPress(stickMapping.left, 'keyup');
-                                    simulateKeyPress(stickMapping.right, 'keyup');
-                                }
-                                
                                 if (value < -deadzone) {
-                                    simulateKeyPress(stickMapping.left, 'keydown');
+                                    newKeys.add(stickMapping.left);
                                 } else if (value > deadzone) {
-                                    simulateKeyPress(stickMapping.right, 'keydown');
+                                    newKeys.add(stickMapping.right);
                                 }
                             }
                             
                             // Handle vertical axis (1 = left stick Y, 3 = right stick Y)
                             if (axisIndex === 1 || axisIndex === 3) {
-                                // Release previous keys if axis changed significantly
-                                if (Math.abs(value - prevValue) > 0.1) {
-                                    simulateKeyPress(stickMapping.up, 'keyup');
-                                    simulateKeyPress(stickMapping.down, 'keyup');
-                                }
-                                
                                 if (value < -deadzone) {
-                                    simulateKeyPress(stickMapping.up, 'keydown');
+                                    newKeys.add(stickMapping.up);
                                 } else if (value > deadzone) {
-                                    simulateKeyPress(stickMapping.down, 'keydown');
+                                    newKeys.add(stickMapping.down);
                                 }
                             }
                             
-                            // Store current axis state
-                            previousAxisStates[controllerIndex][axisIndex] = value;
+                            // Release keys that are no longer active
+                            currentKeys.forEach(key => {
+                                if (!newKeys.has(key)) {
+                                    simulateKeyPress(key, 'keyup');
+                                }
+                            });
+                            
+                            // Press keys that are newly active
+                            newKeys.forEach(key => {
+                                if (!currentKeys.has(key)) {
+                                    simulateKeyPress(key, 'keydown');
+                                }
+                            });
+                            
+                            // Update the active keys set
+                            activeAxisKeys[controllerIndex][axisIndex] = newKeys;
                         }
                         
                         // Enhanced controller event listeners
@@ -933,6 +942,13 @@
                                 }
                                 if (previousAxisStates[e.gamepad.index]) {
                                     delete previousAxisStates[e.gamepad.index];
+                                }
+                                if (activeAxisKeys[e.gamepad.index]) {
+                                    // Release all active axis keys
+                                    Object.values(activeAxisKeys[e.gamepad.index]).forEach(keySet => {
+                                        keySet.forEach(key => simulateKeyPress(key, 'keyup'));
+                                    });
+                                    delete activeAxisKeys[e.gamepad.index];
                                 }
                             }
                             
