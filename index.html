@@ -693,11 +693,11 @@
                             2: { player1: 'A', player2: 'U' },     // X (Square equivalent)
                             3: { player1: 'S', player2: 'Y' },     // Y (Triangle equivalent)
                             
-                            // Shoulder buttons
+                            // Shoulder buttons (Xbox controllers may report these differently)
                             4: { player1: '1', player2: 'Q' },     // LB (L1)
                             5: { player1: '8', player2: 'R' },     // RB (R1)
-                            6: { player1: '2', player2: 'W' },     // LT (L2)
-                            7: { player1: '9', player2: 'Numpad7' }, // RT (R2)
+                            6: { player1: '2', player2: 'W' },     // LT (L2) - sometimes axis instead
+                            7: { player1: '9', player2: 'Numpad7' }, // RT (R2) - sometimes axis instead
                             
                             // Center buttons
                             8: { player1: 'Backspace', player2: 'O' }, // Back/View
@@ -772,8 +772,12 @@
                             let code = "";
                             
                             // Convert key to proper code
-                            if (key.length === 1) {
+                            if (key.length === 1 && /[A-Za-z]/.test(key)) {
+                                // Letter keys
                                 code = "Key" + key.toUpperCase();
+                            } else if (["1", "2", "3", "8", "9", "0"].includes(key)) {
+                                // Number keys for shoulder buttons - use Key format to match C++
+                                code = "Key" + key;
                             } else if (key === "Enter") {
                                 code = "Enter";
                             } else if (key === "Backspace") {
@@ -782,8 +786,6 @@
                                 code = key;
                             } else if (key.startsWith("Numpad")) {
                                 code = key;
-                            } else if (["1", "2", "3", "8", "9", "0"].includes(key)) {
-                                code = "Digit" + key;
                             } else if (key === "Comma") {
                                 code = "Comma";
                             } else if (key === "Period") {
@@ -792,6 +794,9 @@
                                 code = "Slash";
                             } else if (key === "Semicolon") {
                                 code = "Semicolon";
+                            } else {
+                                // Fallback for other keys
+                                code = key;
                             }
                             
                             const event = new KeyboardEvent(type, {
@@ -818,6 +823,11 @@
                             const controllerType = getControllerType(controller);
                             let mapping;
                             
+                            // Debug: Log button presses to help identify issues
+                            if (pressed) {
+                                console.log(`DEBUG: Controller ${controllerIndex} (${controllerType}) - Button ${buttonIndex} pressed`);
+                            }
+                            
                             if (controllerType === 'Xbox') {
                                 mapping = XBOX_BUTTON_MAPPING[buttonIndex];
                             } else {
@@ -825,13 +835,16 @@
                                 mapping = PS_BUTTON_MAPPING[buttonIndex];
                             }
                             
-                            if (!mapping) return;
+                            if (!mapping) {
+                                console.log(`DEBUG: No mapping found for button ${buttonIndex} on ${controllerType} controller`);
+                                return;
+                            }
                             
                             const key = playerNum === 1 ? mapping.player1 : mapping.player2;
                             const eventType = pressed ? 'keydown' : 'keyup';
                             
                             simulateKeyPress(key, eventType);
-                            console.log(`Controller ${controllerIndex} (${controllerType}, Player ${playerNum}): Button ${buttonIndex} ${pressed ? 'pressed' : 'released'} -> ${key}`);
+                            console.log(`Controller ${controllerIndex} (${controllerType}, Player ${playerNum}): Button ${buttonIndex} ${pressed ? 'pressed' : 'released'} -> ${key} (code: Key${key})`);
                         }
                         
                         // FIXED: Proper analog stick handling
