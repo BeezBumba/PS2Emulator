@@ -1,15 +1,15 @@
 // sw.js
-const CACHE_NAME = 'play-cache-v2';
+const CACHE_NAME = 'play-cache-v4';
 const URLS_TO_CACHE = [
-  'Play.js',
-  'Play.wasm',
-  'favicon.ico',
-  'play-192.png',
-  'play-512.png',
-  'index.html',
-  'manifest.json',
-  'static/js/main.45ba3ecb.js',
-  'static/css/main.5a525eca.css'
+  '/Play.js',
+  '/Play.wasm',
+  '/favicon.ico',
+  '/play-192.png',
+  '/play-512.png',
+  '/index.html',
+  '/manifest.json',
+  '/static/js/main.45ba3ecb.js',
+  '/static/css/main.5a525eca.css'
 ];
 
 // Install: pre-cache all core assets
