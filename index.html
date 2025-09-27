@@ -104,14 +104,14 @@
                 background: #444;
             }
 
-            /* Settings panel */
+            /* Settings panel - EXPANDED for save states */
             #settings-panel {
                 position: fixed;
                 top: 60px;
                 left: 120px;
                 z-index: 10;
                 background: rgba(0, 0, 0, 0.95);
-                padding: 12px 16px;
+                padding: 16px 20px;
                 border-radius: 8px;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
                 border: 1px solid #444;
@@ -119,7 +119,9 @@
                 opacity: 0;
                 transition: all 0.3s ease;
                 pointer-events: none;
-                min-width: 200px;
+                min-width: 280px;
+                max-height: 80vh;
+                overflow-y: auto;
             }
 
             #settings-panel.expanded {
@@ -128,9 +130,29 @@
                 pointer-events: auto;
             }
 
+            #settings-panel .section {
+                margin-bottom: 20px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #555;
+            }
+
+            #settings-panel .section:last-child {
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+
+            #settings-panel .section-title {
+                color: #fff;
+                font-weight: bold;
+                font-size: 16px;
+                margin-bottom: 12px;
+                display: block;
+            }
+
             #settings-panel label {
                 display: block;
-                color: #fff;
+                color: #ccc;
                 font-weight: bold;
                 margin-bottom: 8px;
                 font-size: 14px;
@@ -146,6 +168,7 @@
                 font-size: 14px;
                 cursor: pointer;
                 font-family: inherit;
+                margin-bottom: 12px;
             }
 
             #settings-panel select:hover {
@@ -157,6 +180,105 @@
                 outline: none;
                 border-color: #007bff;
                 box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+            }
+
+            /* Save state controls */
+            .save-slots {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .save-slot {
+                padding: 8px 4px;
+                border: 1px solid #666;
+                border-radius: 4px;
+                background-color: #444;
+                color: #fff;
+                font-size: 12px;
+                cursor: pointer;
+                text-align: center;
+                transition: all 0.2s;
+            }
+
+            .save-slot:hover {
+                background-color: #555;
+                border-color: #777;
+            }
+
+            .save-slot.has-save {
+                border-color: #4CAF50;
+                background-color: #2d5a2d;
+            }
+
+            .save-slot.selected {
+                border-color: #007bff;
+                background-color: #1a4480;
+            }
+
+            .save-actions {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .save-actions button {
+                flex: 1;
+                padding: 8px 12px;
+                border: 1px solid #666;
+                border-radius: 4px;
+                background-color: #444;
+                color: #fff;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .save-actions button:hover:not(:disabled) {
+                background-color: #555;
+                border-color: #777;
+            }
+
+            .save-actions button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .save-actions .save-btn {
+                background-color: #2d5a2d;
+                border-color: #4CAF50;
+            }
+
+            .save-actions .load-btn {
+                background-color: #1a4480;
+                border-color: #007bff;
+            }
+
+            .import-export {
+                display: flex;
+                gap: 8px;
+            }
+
+            .import-export button {
+                flex: 1;
+                padding: 6px 10px;
+                border: 1px solid #666;
+                border-radius: 4px;
+                background-color: #444;
+                color: #fff;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .import-export button:hover {
+                background-color: #555;
+                border-color: #777;
+            }
+
+            .import-export input[type="file"] {
+                display: none;
             }
 
             /* Collapsible file import panel */
@@ -480,7 +602,7 @@
                 -ms-user-select: none
             }
         </style>
-        <script defer="defer" src="/static/js/main.2261257a.js"></script>
+        <script defer="defer" src="/static/js/main.30e3adf7.js"></script>
         <script defer src="/register.js"></script>
         <link href="/static/css/main.5a525eca.css" rel="stylesheet">
     </head>
@@ -498,19 +620,45 @@
                 <button id="touch-controls-toggle" aria-label="Toggle touch controls">
                     🎮
                 </button>
-                <button id="file-import-toggle" aria-label="Toggle file import">
+                <button id="file-import-toggle" aria-label="File Import">
                     📁
                 </button>
                 <button id="settings-toggle" aria-label="Settings">
                     🔧
                 </button>
                 <div id="settings-panel">
-                    <label for="resolution-select">Resolution Scale:</label>
-                    <select id="resolution-select">
-                        <option value="1">1x (640×480)</option>
-                        <option value="2">2x (1280×960)</option>
-                        <option value="3">3x (1920×1440)</option>
-                    </select>
+                    <!-- Resolution Section -->
+                    <div class="section">
+                        <span class="section-title">🎮 Graphics</span>
+                        <label for="resolution-select">Resolution Scale:</label>
+                        <select id="resolution-select">
+                            <option value="1">1x (640×480)</option>
+                            <option value="2">2x (1280×960)</option>
+                            <option value="3">3x (1920×1440)</option>
+                        </select>
+                    </div>
+
+                    <!-- Save States Section -->
+                    <div class="section">
+                        <span class="section-title">💾 Save States</span>
+                        <label>Select Save Slot:</label>
+                        <div class="save-slots">
+                            <div class="save-slot" data-slot="0">Slot 0</div>
+                            <div class="save-slot" data-slot="1">Slot 1</div>
+                            <div class="save-slot" data-slot="2">Slot 2</div>
+                            <div class="save-slot" data-slot="3">Slot 3</div>
+                            <div class="save-slot" data-slot="4">Slot 4</div>
+                        </div>
+                        <div class="save-actions">
+                            <button id="save-state-btn" class="save-btn">💾 Save</button>
+                            <button id="load-state-btn" class="load-btn" disabled>📁 Load</button>
+                        </div>
+                        <div class="import-export">
+                            <button id="export-saves-btn">📤 Export All</button>
+                            <button id="import-saves-btn">📥 Import</button>
+                            <input type="file" id="import-saves-input" accept=".zip,.p2s" multiple>
+                        </div>
+                    </div>
                 </div>
                 <div id="root"></div>
                 <div id="mobile-controls">
@@ -568,6 +716,97 @@
 
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
+                        // Save state functionality
+                        let selectedSlot = 0;
+                        
+                        function updateSaveSlots() {
+                            document.querySelectorAll('.save-slot').forEach(slot => {
+                                const slotNum = parseInt(slot.dataset.slot);
+                                slot.classList.remove('selected', 'has-save');
+                                
+                                if (slotNum === selectedSlot) {
+                                    slot.classList.add('selected');
+                                }
+                                
+                                // Check if slot has save state
+                                if (window.PlayModule && window.PlayModule.hasState) {
+                                    try {
+                                        if (window.PlayModule.hasState(slotNum)) {
+                                            slot.classList.add('has-save');
+                                        }
+                                    } catch (e) {
+                                        console.log('Could not check save state for slot', slotNum);
+                                    }
+                                }
+                            });
+                            
+                            // Update load button state
+                            const loadBtn = document.getElementById('load-state-btn');
+                            const hasCurrentSlotSave = document.querySelector(`[data-slot="${selectedSlot}"]`).classList.contains('has-save');
+                            loadBtn.disabled = !hasCurrentSlotSave;
+                        }
+                        
+                        // Save slot selection
+                        document.querySelectorAll('.save-slot').forEach(slot => {
+                            slot.addEventListener('click', function() {
+                                selectedSlot = parseInt(this.dataset.slot);
+                                updateSaveSlots();
+                            });
+                        });
+                        
+                        // Save state button
+                        document.getElementById('save-state-btn').addEventListener('click', function() {
+                            if (window.PlayModule && window.PlayModule.saveState) {
+                                try {
+                                    window.PlayModule.saveState(selectedSlot);
+                                    console.log(`State saved to slot ${selectedSlot}`);
+                                    setTimeout(updateSaveSlots, 500); // Update UI after save
+                                } catch (e) {
+                                    console.error('Failed to save state:', e);
+                                    alert('Failed to save state. Make sure a game is loaded.');
+                                }
+                            } else {
+                                alert('Save state not available. Make sure the emulator is loaded.');
+                            }
+                        });
+                        
+                        // Load state button
+                        document.getElementById('load-state-btn').addEventListener('click', function() {
+                            if (window.PlayModule && window.PlayModule.loadState) {
+                                try {
+                                    window.PlayModule.loadState(selectedSlot);
+                                    console.log(`State loaded from slot ${selectedSlot}`);
+                                } catch (e) {
+                                    console.error('Failed to load state:', e);
+                                    alert('Failed to load state from this slot.');
+                                }
+                            } else {
+                                alert('Load state not available. Make sure the emulator is loaded.');
+                            }
+                        });
+                        
+                        // Export saves button
+                        document.getElementById('export-saves-btn').addEventListener('click', function() {
+                            // TODO: Implement save export functionality
+                            alert('Export functionality coming soon!');
+                        });
+                        
+                        // Import saves button
+                        document.getElementById('import-saves-btn').addEventListener('click', function() {
+                            document.getElementById('import-saves-input').click();
+                        });
+                        
+                        // Import saves file input
+                        document.getElementById('import-saves-input').addEventListener('change', function(e) {
+                            // TODO: Implement save import functionality
+                            if (e.target.files.length > 0) {
+                                alert('Import functionality coming soon!');
+                            }
+                        });
+                        
+                        // Update save slots periodically
+                        setInterval(updateSaveSlots, 2000);
+
                         // Mobile controls functionality
                         const mobileControls = document.getElementById("mobile-controls");
                         const touchControlsToggle = document.getElementById("touch-controls-toggle");
@@ -608,6 +847,10 @@
 
                         settingsToggle.addEventListener('click', function() {
                             settingsPanel.classList.toggle('expanded');
+                            // Update save slots when panel opens
+                            if (settingsPanel.classList.contains('expanded')) {
+                                setTimeout(updateSaveSlots, 100);
+                            }
                         });
 
                         resolutionSelect.addEventListener('change', function(e) {
@@ -809,125 +1052,39 @@
                             E(u, f, t.clientX, t.clientY, p, h)
                         }
                         ), !1),
-                        window.addEventListener("mousemove", (e => {
+                        document.addEventListener("mousemove", (e => {
                             v && E(l, r, e.clientX, e.clientY, m, g),
                             y && E(u, f, e.clientX, e.clientY, p, h)
                         }
                         )),
-                        window.addEventListener("touchmove", (e => {
-                            if (v) {
-                                const t = Array.from(e.touches).find((e => e.target.closest("#left-joystick")));
-                                t && E(l, r, t.clientX, t.clientY, m, g)
-                            }
-                            if (y) {
-                                const t = Array.from(e.touches).find((e => e.target.closest("#right-joystick")));
-                                t && E(u, f, t.clientX, t.clientY, p, h)
+                        document.addEventListener("touchmove", (e => {
+                            e.preventDefault();
+                            for (let t = 0; t < e.touches.length; t++) {
+                                const n = e.touches[t];
+                                v && E(l, r, n.clientX, n.clientY, m, g),
+                                y && E(u, f, n.clientX, n.clientY, p, h)
                             }
                         }
-                        )),
-                        window.addEventListener("mouseup", ( () => {
-                            v && (v = !1,
-                            w(r, g)),
-                            y && (y = !1,
-                            w(f, h))
+                        ), {
+                            passive: !1
+                        }),
+                        document.addEventListener("mouseup", ( () => {
+                            v && (w(r, g),
+                            v = !1),
+                            y && (w(f, h),
+                            y = !1)
                         }
                         )),
-                        window.addEventListener("touchend", (e => {
-                            v && (Array.from(e.touches).some((e => e.target.closest("#left-joystick"))) || (v = !1,
-                            w(r, g))),
-                            y && (Array.from(e.touches).some((e => e.target.closest("#right-joystick"))) || (y = !1,
-                            w(f, h)))
+                        document.addEventListener("touchend", (e => {
+                            0 === e.touches.length && (v && (w(r, g),
+                            v = !1),
+                            y && (w(f, h),
+                            y = !1))
                         }
                         ))
-
-                        // GAMEPAD FUNCTIONALITY ADDED
-                        // Track pressed state so we don't spam events
-                        const gamepadPressed = {};
-
-                        function sendGamepadKey(key, down) {
-                            if (gamepadPressed[key] === down) return;
-                            gamepadPressed[key] = down;
-                            
-                            // FIXED: Gamepad should work independently of mobile controls visibility
-                            let code = "";
-                            if (key.length === 1) code = "Key" + key.toUpperCase();
-                            else if (key === "Enter") code = "Enter";
-                            else if (key === "Backspace") code = "Backspace";
-                            else if (key.startsWith("Arrow")) code = key;
-                            else if (["1","2","3","8","9","0"].includes(key)) code = "Digit" + key;
-
-                            const evt = new KeyboardEvent(down ? "keydown" : "keyup", {
-                                key: key,
-                                code: code,
-                                bubbles: true,
-                                cancelable: true,
-                                isTrusted: true
-                            });
-
-                            if (i) i.dispatchEvent(evt);
-                            window.dispatchEvent(evt);
-                            document.dispatchEvent(evt);
-                        }
-
-                        function handleGamepad(pad) {
-                            // Face buttons
-                            sendGamepadKey("Z", pad.buttons[0].pressed); // Cross (A)
-                            sendGamepadKey("X", pad.buttons[1].pressed); // Circle (B)
-                            sendGamepadKey("A", pad.buttons[2].pressed); // Square (X)
-                            sendGamepadKey("S", pad.buttons[3].pressed); // Triangle (Y)
-
-                            // D-Pad
-                            sendGamepadKey("ArrowUp", pad.buttons[12].pressed);
-                            sendGamepadKey("ArrowDown", pad.buttons[13].pressed);
-                            sendGamepadKey("ArrowLeft", pad.buttons[14].pressed);
-                            sendGamepadKey("ArrowRight", pad.buttons[15].pressed);
-
-                            // Start / Select
-                            sendGamepadKey("Enter", pad.buttons[9].pressed);
-                            sendGamepadKey("Backspace", pad.buttons[8].pressed);
-
-                            // Shoulders / Triggers
-                            sendGamepadKey("1", pad.buttons[4].pressed);  // L1
-                            sendGamepadKey("2", pad.buttons[6].pressed);  // L2
-                            sendGamepadKey("3", pad.buttons[10].pressed); // L3
-                            sendGamepadKey("8", pad.buttons[5].pressed);  // R1
-                            sendGamepadKey("9", pad.buttons[7].pressed);  // R2
-                            sendGamepadKey("0", pad.buttons[11].pressed); // R3
-
-                            // Left stick → F/H/T/G
-                            sendGamepadKey("f", pad.axes[0] < -0.5);
-                            sendGamepadKey("h", pad.axes[0] > 0.5);
-                            sendGamepadKey("t", pad.axes[1] < -0.5);
-                            sendGamepadKey("g", pad.axes[1] > 0.5);
-
-                            // Right stick → J/L/I/K
-                            sendGamepadKey("j", pad.axes[2] < -0.5);
-                            sendGamepadKey("l", pad.axes[2] > 0.5);
-                            sendGamepadKey("i", pad.axes[3] < -0.5);
-                            sendGamepadKey("k", pad.axes[3] > 0.5);
-                        }
-
-                        function pollGamepads() {
-                            const pads = navigator.getGamepads();
-                            for (const pad of pads) {
-                                if (pad) handleGamepad(pad);
-                            }
-                            requestAnimationFrame(pollGamepads);
-                        }
-
-                        window.addEventListener("gamepadconnected", (e) => {
-                            console.log("Gamepad connected:", e.gamepad.id);
-                            pollGamepads();
-                        });
-
-                        window.addEventListener("gamepaddisconnected", (e) => {
-                            console.log("Gamepad disconnected:", e.gamepad.id);
-                        });
-                    }))
+                    }
+                    ))
                 </script>
-            </div>
-            <div class="global-column" style="max-width:500px;overflow:auto">
-                <div></div>
             </div>
         </div>
     </body>
