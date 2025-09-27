@@ -1012,6 +1012,16 @@
                         }
                         
                         fileImportToggle.addEventListener('click', toggleFileImport);
+                        
+                        // Auto-hide file import panel when a file is selected
+                        document.addEventListener('change', function(e) {
+                            if (e.target.type === 'file' && e.target.files.length > 0) {
+                                // Auto-hide the file import panel after file selection
+                                setTimeout(() => {
+                                    rootDiv.classList.remove('expanded');
+                                }, 500);
+                            }
+                        });
 
                         // Settings panel functionality
                         const settingsToggle = document.getElementById("settings-toggle");
@@ -1026,14 +1036,21 @@
                         // Resolution scaling functionality
                         const resolutionSelect = document.getElementById("resolution-select");
                         
-                        resolutionSelect.addEventListener('change', function() {
-                            const scale = parseInt(this.value);
-                            console.log(`Setting resolution scale to ${scale}x`);
+                        resolutionSelect.addEventListener('change', function(e) {
+                            const newScale = parseInt(e.target.value);
                             
-                            // Call the emulator's resolution scaling function
-                            if (typeof Module !== 'undefined' && Module.setResolutionScale) {
-                                Module.setResolutionScale(scale);
-                            }
+                            // Wait for React app to be ready
+                            setTimeout(() => {
+                                if (window.PlayModule && window.PlayModule.setResolutionScale) {
+                                    window.PlayModule.setResolutionScale(newScale);
+                                    console.log('Resolution set to:', newScale + 'x');
+                                }
+                            }, 100);
+                            
+                            // Auto-hide panel
+                            setTimeout(() => {
+                                settingsPanel.classList.remove('expanded');
+                            }, 1000);
                         });
 
                         // Touch controls for mobile
