@@ -83,6 +83,82 @@
                 background: #444;
             }
 
+            /* Settings toggle button */
+            #settings-toggle {
+                position: fixed;
+                top: 20px;
+                left: 120px;
+                z-index: 11;
+                background: #333;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                transition: background 0.2s;
+            }
+
+            #settings-toggle:hover {
+                background: #444;
+            }
+
+            /* Settings panel */
+            #settings-panel {
+                position: fixed;
+                top: 60px;
+                left: 120px;
+                z-index: 10;
+                background: rgba(0, 0, 0, 0.95);
+                padding: 12px 16px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                border: 1px solid #444;
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                pointer-events: none;
+                min-width: 200px;
+            }
+
+            #settings-panel.expanded {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            #settings-panel label {
+                display: block;
+                color: #fff;
+                font-weight: bold;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            #settings-panel select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #666;
+                border-radius: 4px;
+                background-color: #444;
+                color: #fff;
+                font-size: 14px;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            #settings-panel select:hover {
+                background-color: #555;
+                border-color: #777;
+            }
+
+            #settings-panel select:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+            }
+
             /* Collapsible file import panel */
             #root > div {
                 background: rgba(0, 0, 0, 0.95);
@@ -425,6 +501,17 @@
                 <button id="file-import-toggle" aria-label="Toggle file import">
                     📁
                 </button>
+                <button id="settings-toggle" aria-label="Settings">
+                    🔧
+                </button>
+                <div id="settings-panel">
+                    <label for="resolution-select">Resolution Scale:</label>
+                    <select id="resolution-select">
+                        <option value="1">1x (640×480)</option>
+                        <option value="2">2x (1280×960)</option>
+                        <option value="3">3x (1920×1440)</option>
+                    </select>
+                </div>
                 <div id="root"></div>
                 <div id="mobile-controls">
                     <div class="mc-grid-container">
@@ -471,35 +558,74 @@
                         </div>
                     </div>
                 </div>
+           
+                <div id="orientation-warning">
+                    <div>
+                        <div style="font-size:3em;margin-bottom:0.5em">📱</div>
+                        <div>Please rotate your device to landscape mode for the best gaming experience</div>
+                    </div>
+                </div>
+
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
-                        // Touch controls toggle functionality - FIXED: Complete hide/show with disabled interaction
-                        const touchControlsToggle = document.getElementById('touch-controls-toggle');
-                        const mobileControls = document.getElementById('mobile-controls');
-
-                        // Load saved preference
-                        const showTouchControls = localStorage.getItem('showTouchControls') !== 'false';
-                        if (!showTouchControls) {
-                            mobileControls.classList.add('hidden');
-                        }
-
+                        // Mobile controls functionality
+                        const mobileControls = document.getElementById("mobile-controls");
+                        const touchControlsToggle = document.getElementById("touch-controls-toggle");
+                        
+                        let controlsVisible = false;
+                        
                         function toggleTouchControls() {
-                            const isVisible = !mobileControls.classList.contains('hidden');
-                            mobileControls.classList.toggle('hidden');
-                            localStorage.setItem('showTouchControls', !isVisible);
+                            controlsVisible = !controlsVisible;
+                            if (controlsVisible) {
+                                mobileControls.classList.remove('hidden');
+                                touchControlsToggle.style.right = '0';
+                            } else {
+                                mobileControls.classList.add('hidden');
+                                touchControlsToggle.style.right = '-10px';
+                            }
                         }
-
+                        
+                        // Initially hide controls
+                        mobileControls.classList.add('hidden');
+                        touchControlsToggle.style.right = '-10px';
+                        
                         touchControlsToggle.addEventListener('click', toggleTouchControls);
 
-                        // File import toggle functionality
-                        const fileImportToggle = document.getElementById('file-import-toggle');
-                        const rootDiv = document.getElementById('root');
-
+                        // File import functionality
+                        const rootDiv = document.getElementById("root");
+                        const fileImportToggle = document.getElementById("file-import-toggle");
+                        
                         function toggleFileImport() {
                             rootDiv.classList.toggle('expanded');
                         }
-
+                        
                         fileImportToggle.addEventListener('click', toggleFileImport);
+
+                        // Settings panel functionality
+                        const settingsToggle = document.getElementById("settings-toggle");
+                        const settingsPanel = document.getElementById("settings-panel");
+                        const resolutionSelect = document.getElementById("resolution-select");
+
+                        settingsToggle.addEventListener('click', function() {
+                            settingsPanel.classList.toggle('expanded');
+                        });
+
+                        resolutionSelect.addEventListener('change', function(e) {
+                            const newScale = parseInt(e.target.value);
+                            
+                            // Wait for React app to be ready
+                            setTimeout(() => {
+                                if (window.PlayModule && window.PlayModule.setResolutionScale) {
+                                    window.PlayModule.setResolutionScale(newScale);
+                                    console.log('Resolution set to:', newScale + 'x');
+                                }
+                            }, 100);
+                            
+                            // Auto-hide panel
+                            setTimeout(() => {
+                                settingsPanel.classList.remove('expanded');
+                            }, 1000);
+                        });
 
                         // Auto-hide file import panel after file selection
                         const observer = new MutationObserver(function(mutations) {
