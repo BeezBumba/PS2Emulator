@@ -83,6 +83,123 @@
                 background: #444;
             }
 
+            /* Resolution controls toggle button */
+            #resolution-toggle {
+                position: fixed;
+                top: 20px;
+                left: 120px;
+                z-index: 11;
+                background: #333;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                transition: background 0.2s;
+            }
+
+            #resolution-toggle:hover {
+                background: #444;
+            }
+
+            #resolution-toggle.disabled {
+                background: #666;
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+
+            /* Status indicator */
+            #status-indicator {
+                position: fixed;
+                top: 20px;
+                left: 220px;
+                z-index: 11;
+                background: #666;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                transition: background 0.2s;
+                pointer-events: none;
+            }
+
+            #status-indicator.ready {
+                background: #4CAF50;
+            }
+
+            #status-indicator.loading {
+                background: #FF9800;
+            }
+
+            #status-indicator.error {
+                background: #F44336;
+            }
+
+            /* Resolution controls panel */
+            #resolution-controls {
+                position: fixed;
+                top: 60px;
+                left: 120px;
+                z-index: 10;
+                background: rgba(0, 0, 0, 0.95);
+                padding: 12px 16px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                border: 1px solid #444;
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s ease;
+                pointer-events: none;
+                min-width: 200px;
+            }
+
+            #resolution-controls.expanded {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            #resolution-controls label {
+                display: block;
+                color: #fff;
+                font-weight: bold;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            #resolution-controls select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #666;
+                border-radius: 4px;
+                background-color: #444;
+                color: #fff;
+                font-size: 14px;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            #resolution-controls select:hover {
+                background-color: #555;
+                border-color: #777;
+            }
+
+            #resolution-controls select:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+            }
+
+            #resolution-controls select:disabled {
+                background-color: #333;
+                color: #999;
+                cursor: not-allowed;
+            }
+
             /* Collapsible file import panel */
             #root > div {
                 background: rgba(0, 0, 0, 0.95);
@@ -404,7 +521,8 @@
                 -ms-user-select: none
             }
         </style>
-        <script defer="defer" src="/static/js/main.js"></script>
+        <!-- Use the fixed main.js file -->
+        <script defer="defer" src="main_fixed.js"></script>
         <script defer src="/register.js"></script>
         <link href="/static/css/main.5a525eca.css" rel="stylesheet">
     </head>
@@ -425,6 +543,18 @@
                 <button id="file-import-toggle" aria-label="Toggle file import">
                     📁
                 </button>
+                <button id="resolution-toggle" class="disabled" aria-label="Toggle resolution controls">
+                    🔧
+                </button>
+                <div id="status-indicator" class="loading">Detecting...</div>
+                <div id="resolution-controls">
+                    <label for="resolution-select">Resolution Scale:</label>
+                    <select id="resolution-select" disabled>
+                        <option value="1">1x (Native - 640×480)</option>
+                        <option value="2">2x (1280×960)</option>
+                        <option value="3">3x (1920×1440)</option>
+                    </select>
+                </div>
                 <div id="root"></div>
                 <div id="mobile-controls">
                     <div class="mc-grid-container">
@@ -471,35 +601,258 @@
                         </div>
                     </div>
                 </div>
+           
+                <div id="orientation-warning">
+                    <div>
+                        <div style="font-size:3em;margin-bottom:0.5em">📱</div>
+                        <div>Please rotate your device to landscape mode for the best gaming experience</div>
+                    </div>
+                </div>
+
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
-                        // Touch controls toggle functionality - FIXED: Complete hide/show with disabled interaction
-                        const touchControlsToggle = document.getElementById('touch-controls-toggle');
-                        const mobileControls = document.getElementById('mobile-controls');
-
-                        // Load saved preference
-                        const showTouchControls = localStorage.getItem('showTouchControls') !== 'false';
-                        if (!showTouchControls) {
-                            mobileControls.classList.add('hidden');
+                        // Global variables
+                        let PlayModule = null;
+                        let moduleReady = false;
+                        let detectedVersion = "Unknown";
+                        
+                        // UI elements
+                        const statusIndicator = document.getElementById('status-indicator');
+                        const resolutionToggle = document.getElementById('resolution-toggle');
+                        const resolutionSelect = document.getElementById('resolution-select');
+                        
+                        // Intercept console.log to capture version info
+                        const originalConsoleLog = console.log;
+                        console.log = function(...args) {
+                            const message = args.join(' ');
+                            if (message.includes('Play! - Version')) {
+                                detectedVersion = message.replace('Play! - Version ', '');
+                                console.log('Detected version:', detectedVersion);
+                            }
+                            originalConsoleLog.apply(console, args);
+                        };
+                        
+                        // Update status indicator
+                        function updateStatus(status, text) {
+                            statusIndicator.className = status;
+                            statusIndicator.textContent = text;
                         }
+                        
+                        // Enable/disable resolution controls
+                        function setResolutionControlsEnabled(enabled) {
+                            if (enabled) {
+                                resolutionToggle.classList.remove('disabled');
+                                resolutionSelect.disabled = false;
+                                moduleReady = true;
+                            } else {
+                                resolutionToggle.classList.add('disabled');
+                                resolutionSelect.disabled = true;
+                                moduleReady = false;
+                            }
+                        }
+                        
+                        // Wait for React app to initialize and hook into its module
+                        function waitForReactModule() {
+                            updateStatus('loading', 'Waiting for React...');
+                            
+                            // Look for the Redux store and React app initialization
+                            const checkForReactApp = setInterval(() => {
+                                // Check if React app has initialized by looking for Redux store
+                                if (window.__REDUX_DEVTOOLS_EXTENSION__ || 
+                                    document.querySelector('#root > div') ||
+                                    window.store) {
+                                    
+                                    clearInterval(checkForReactApp);
+                                    updateStatus('loading', 'React detected, waiting for module...');
+                                    
+                                    // Now wait for the Play module to be available through React
+                                    waitForPlayModule();
+                                }
+                            }, 100);
+                            
+                            // Timeout after 10 seconds
+                            setTimeout(() => {
+                                clearInterval(checkForReactApp);
+                                if (!moduleReady) {
+                                    updateStatus('ready', `v${detectedVersion}`);
+                                    setResolutionControlsEnabled(true);
+                                    console.log('Timeout waiting for React, enabling controls anyway');
+                                }
+                            }, 10000);
+                        }
+                        
+                        // Wait for Play module to be available
+                        function waitForPlayModule() {
+                            let attempts = 0;
+                            const maxAttempts = 100; // 10 seconds
+                            
+                            const checkForModule = setInterval(() => {
+                                attempts++;
+                                
+                                // Try multiple ways to access the module
+                                let foundModule = null;
+                                
+                                // Method 1: Check if window.Play exists and is callable
+                                if (window.Play && typeof window.Play === 'function') {
+                                    foundModule = 'window.Play';
+                                }
+                                
+                                // Method 2: Check if there's a global PlayModule variable
+                                if (window.PlayModule) {
+                                    foundModule = 'window.PlayModule';
+                                    PlayModule = window.PlayModule;
+                                }
+                                
+                                // Method 3: Check React app state for module
+                                if (window.store && window.store.getState) {
+                                    const state = window.store.getState();
+                                    if (state && state.play && state.play.value === 'initialized') {
+                                        foundModule = 'React store';
+                                    }
+                                }
+                                
+                                // Method 4: Look for signs that the module is working (console messages)
+                                if (detectedVersion !== "Unknown" && attempts > 20) {
+                                    foundModule = 'console detection';
+                                }
+                                
+                                if (foundModule) {
+                                    clearInterval(checkForModule);
+                                    console.log('Module detected via:', foundModule);
+                                    
+                                    // Try to initialize resolution controls
+                                    setTimeout(() => {
+                                        initializeResolutionControls();
+                                    }, 1000);
+                                    
+                                } else if (attempts >= maxAttempts) {
+                                    clearInterval(checkForModule);
+                                    console.log('Module detection timeout, enabling controls anyway');
+                                    updateStatus('ready', `v${detectedVersion}`);
+                                    setResolutionControlsEnabled(true);
+                                }
+                            }, 100);
+                        }
+                        
+                        // Initialize resolution controls
+                        function initializeResolutionControls() {
+                            updateStatus('ready', `v${detectedVersion}`);
+                            setResolutionControlsEnabled(true);
+                            console.log('Resolution controls enabled');
+                            
+                            // Try to get current resolution scale if possible
+                            if (PlayModule && PlayModule.getResolutionScale) {
+                                try {
+                                    const currentScale = PlayModule.getResolutionScale();
+                                    resolutionSelect.value = currentScale;
+                                } catch (e) {
+                                    console.log('Could not get current resolution scale:', e);
+                                }
+                            }
+                        }
+                        
+                        // Start the detection process
+                        waitForReactModule();
 
+                        // Mobile controls functionality
+                        const mobileControls = document.getElementById("mobile-controls");
+                        const touchControlsToggle = document.getElementById("touch-controls-toggle");
+                        
+                        let controlsVisible = false;
+                        
                         function toggleTouchControls() {
-                            const isVisible = !mobileControls.classList.contains('hidden');
-                            mobileControls.classList.toggle('hidden');
-                            localStorage.setItem('showTouchControls', !isVisible);
+                            controlsVisible = !controlsVisible;
+                            if (controlsVisible) {
+                                mobileControls.classList.remove('hidden');
+                                touchControlsToggle.style.right = '0';
+                            } else {
+                                mobileControls.classList.add('hidden');
+                                touchControlsToggle.style.right = '-10px';
+                            }
                         }
-
+                        
+                        // Initially hide controls
+                        mobileControls.classList.add('hidden');
+                        touchControlsToggle.style.right = '-10px';
+                        
                         touchControlsToggle.addEventListener('click', toggleTouchControls);
 
-                        // File import toggle functionality
-                        const fileImportToggle = document.getElementById('file-import-toggle');
-                        const rootDiv = document.getElementById('root');
-
+                        // File import functionality
+                        const rootDiv = document.getElementById("root");
+                        const fileImportToggle = document.getElementById("file-import-toggle");
+                        
                         function toggleFileImport() {
                             rootDiv.classList.toggle('expanded');
                         }
-
+                        
                         fileImportToggle.addEventListener('click', toggleFileImport);
+
+                        // Resolution controls functionality
+                        const resolutionControls = document.getElementById("resolution-controls");
+                        
+                        function toggleResolutionControls() {
+                            if (!moduleReady) {
+                                console.warn('Module not ready yet');
+                                return;
+                            }
+                            resolutionControls.classList.toggle('expanded');
+                        }
+                        
+                        resolutionToggle.addEventListener('click', toggleResolutionControls);
+                        
+                        // Handle resolution scale changes
+                        resolutionSelect.addEventListener('change', function(e) {
+                            const newScale = parseInt(e.target.value);
+                            console.log('Resolution scale changed to:', newScale + 'x');
+                            
+                            // Try multiple methods to set resolution
+                            let success = false;
+                            
+                            // Method 1: Direct PlayModule call
+                            if (PlayModule && PlayModule.setResolutionScale) {
+                                try {
+                                    PlayModule.setResolutionScale(newScale);
+                                    success = true;
+                                    console.log('Applied resolution scale via PlayModule:', newScale);
+                                } catch (error) {
+                                    console.log('PlayModule method failed:', error);
+                                }
+                            }
+                            
+                            // Method 2: Global window.PlayModule
+                            if (!success && window.PlayModule && window.PlayModule.setResolutionScale) {
+                                try {
+                                    window.PlayModule.setResolutionScale(newScale);
+                                    success = true;
+                                    console.log('Applied resolution scale via window.PlayModule:', newScale);
+                                } catch (error) {
+                                    console.log('window.PlayModule method failed:', error);
+                                }
+                            }
+                            
+                            // Method 3: Try calling through React/Redux if available
+                            if (!success && window.store) {
+                                try {
+                                    // This is a fallback - the actual implementation would depend on how React exposes the module
+                                    console.log('Attempting resolution change through React store...');
+                                    // Could dispatch an action here if the React app supports it
+                                } catch (error) {
+                                    console.log('React store method failed:', error);
+                                }
+                            }
+                            
+                            if (success) {
+                                updateStatus('ready', `v${detectedVersion} (${newScale}x)`);
+                            } else {
+                                console.warn('Could not apply resolution scale - module may not be fully ready');
+                                updateStatus('ready', `v${detectedVersion} (${newScale}x?)`);
+                            }
+                            
+                            // Auto-hide the resolution controls after selection
+                            setTimeout(() => {
+                                resolutionControls.classList.remove('expanded');
+                            }, 1000);
+                        });
 
                         // Auto-hide file import panel after file selection
                         const observer = new MutationObserver(function(mutations) {
