@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'play-cache-v8';
+const CACHE_NAME = 'play-cache-v9';
 const URLS_TO_CACHE = [
   '/Play.js',
   '/Play.wasm',
@@ -8,7 +8,7 @@ const URLS_TO_CACHE = [
   '/play-512.png',
   '/index.html',
   '/manifest.json',
-  '/static/js/main.cec17e8e.js',
+  '/static/js/main.bedb2a19.js',
   '/static/css/main.5a525eca.css'
 ];
 
