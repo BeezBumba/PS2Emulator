@@ -104,6 +104,54 @@
                 background: #444;
             }
 
+            /* Controller status display */
+            #controller-status {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 11;
+                background: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-family: monospace;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                min-width: 200px;
+            }
+
+            .controller-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 2px 0;
+            }
+
+            .controller-indicator {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #666;
+                flex-shrink: 0;
+            }
+
+            .controller-indicator.connected {
+                background: #4CAF50;
+                box-shadow: 0 0 4px #4CAF50;
+            }
+
+            .controller-indicator.playstation {
+                background: #2196F3;
+                box-shadow: 0 0 4px #2196F3;
+            }
+
+            .controller-name {
+                font-size: 11px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
             /* Settings panel */
             #settings-panel {
                 position: fixed;
@@ -498,12 +546,25 @@
                 <button id="touch-controls-toggle" aria-label="Toggle touch controls">
                     🎮
                 </button>
-                <button id="file-import-toggle" aria-label="Toggle file import">
+                <button id="file-import-toggle" aria-label="File Import">
                     📁
                 </button>
                 <button id="settings-toggle" aria-label="Settings">
                     🔧
                 </button>
+                
+                <!-- Controller Status Display -->
+                <div id="controller-status">
+                    <div class="controller-info">
+                        <div class="controller-indicator" id="controller-1-indicator"></div>
+                        <span class="controller-name" id="controller-1-name">Player 1: Keyboard</span>
+                    </div>
+                    <div class="controller-info">
+                        <div class="controller-indicator" id="controller-2-indicator"></div>
+                        <span class="controller-name" id="controller-2-name">Player 2: None</span>
+                    </div>
+                </div>
+                
                 <div id="settings-panel">
                     <label for="resolution-select">Resolution Scale:</label>
                     <select id="resolution-select">
@@ -568,6 +629,364 @@
 
                 <script>
                     document.addEventListener("DOMContentLoaded", (function() {
+                        // Enhanced Controller Management System
+                        let connectedControllers = {};
+                        let controllerPlayerMapping = {}; // Maps controller index to player number
+                        let playerControllerMapping = {}; // Maps player number to controller index
+                        let nextPlayerSlot = 1; // Next available player slot
+                        let previousButtonStates = {};
+                        let previousAxisStates = {};
+                        
+                        // Enhanced PlayStation Controller Detection
+                        function isPlayStationController(gamepad) {
+                            const id = gamepad.id.toLowerCase();
+                            return id.includes('playstation') || 
+                                   id.includes('dualshock') || 
+                                   id.includes('dualsense') ||
+                                   id.includes('wireless controller') ||
+                                   id.includes('054c'); // Sony vendor ID
+                        }
+                        
+                        // Enhanced Xbox Controller Detection
+                        function isXboxController(gamepad) {
+                            const id = gamepad.id.toLowerCase();
+                            return id.includes('xbox') || 
+                                   id.includes('xinput') ||
+                                   id.includes('045e'); // Microsoft vendor ID
+                        }
+                        
+                        // Generic controller detection
+                        function getControllerType(gamepad) {
+                            if (isPlayStationController(gamepad)) return 'PlayStation';
+                            if (isXboxController(gamepad)) return 'Xbox';
+                            return 'Generic';
+                        }
+                        
+                        // Enhanced PlayStation Controller Button Mapping
+                        const PS_BUTTON_MAPPING = {
+                            // Face buttons (PlayStation layout)
+                            0: { player1: 'Z', player2: 'N' },     // Cross (X)
+                            1: { player1: 'X', player2: 'M' },     // Circle (O)  
+                            2: { player1: 'A', player2: 'U' },     // Square
+                            3: { player1: 'S', player2: 'Y' },     // Triangle
+                            
+                            // Shoulder buttons
+                            4: { player1: '1', player2: 'Q' },     // L1
+                            5: { player1: '8', player2: 'R' },     // R1
+                            6: { player1: '2', player2: 'W' },     // L2
+                            7: { player1: '9', player2: 'Numpad7' }, // R2
+                            
+                            // Center buttons
+                            8: { player1: 'Backspace', player2: 'O' }, // Select/Share
+                            9: { player1: 'Enter', player2: 'P' },     // Start/Options
+                            
+                            // Stick buttons
+                            10: { player1: '3', player2: 'E' },    // L3
+                            11: { player1: '0', player2: 'Numpad9' }, // R3
+                            
+                            // D-Pad
+                            12: { player1: 'ArrowUp', player2: 'Numpad8' },    // Up
+                            13: { player1: 'ArrowDown', player2: 'Numpad2' },  // Down
+                            14: { player1: 'ArrowLeft', player2: 'Numpad4' },  // Left
+                            15: { player1: 'ArrowRight', player2: 'Numpad6' }  // Right
+                        };
+                        
+                        // Xbox Controller Button Mapping (different button order)
+                        const XBOX_BUTTON_MAPPING = {
+                            // Face buttons (Xbox layout)
+                            0: { player1: 'Z', player2: 'N' },     // A (Cross equivalent)
+                            1: { player1: 'X', player2: 'M' },     // B (Circle equivalent)
+                            2: { player1: 'A', player2: 'U' },     // X (Square equivalent)
+                            3: { player1: 'S', player2: 'Y' },     // Y (Triangle equivalent)
+                            
+                            // Shoulder buttons
+                            4: { player1: '1', player2: 'Q' },     // LB (L1)
+                            5: { player1: '8', player2: 'R' },     // RB (R1)
+                            6: { player1: '2', player2: 'W' },     // LT (L2)
+                            7: { player1: '9', player2: 'Numpad7' }, // RT (R2)
+                            
+                            // Center buttons
+                            8: { player1: 'Backspace', player2: 'O' }, // Back/View
+                            9: { player1: 'Enter', player2: 'P' },     // Start/Menu
+                            
+                            // Stick buttons
+                            10: { player1: '3', player2: 'E' },    // Left stick
+                            11: { player1: '0', player2: 'Numpad9' }, // Right stick
+                            
+                            // D-Pad
+                            12: { player1: 'ArrowUp', player2: 'Numpad8' },    // Up
+                            13: { player1: 'ArrowDown', player2: 'Numpad2' },  // Down
+                            14: { player1: 'ArrowLeft', player2: 'Numpad4' },  // Left
+                            15: { player1: 'ArrowRight', player2: 'Numpad6' }  // Right
+                        };
+                        
+                        // Analog stick mappings
+                        const ANALOG_MAPPING = {
+                            player1: {
+                                leftStick: { up: 'T', down: 'G', left: 'F', right: 'H' },
+                                rightStick: { up: 'I', down: 'K', left: 'J', right: 'L' }
+                            },
+                            player2: {
+                                leftStick: { up: 'C', down: 'Numpad0', left: 'V', right: 'B' },
+                                rightStick: { up: 'Slash', down: 'Semicolon', left: 'Comma', right: 'Period' }
+                            }
+                        };
+                        
+                        // Controller status elements
+                        const controller1Indicator = document.getElementById('controller-1-indicator');
+                        const controller1Name = document.getElementById('controller-1-name');
+                        const controller2Indicator = document.getElementById('controller-2-indicator');
+                        const controller2Name = document.getElementById('controller-2-name');
+                        
+                        function updateControllerStatus() {
+                            // Reset indicators
+                            controller1Indicator.classList.remove('connected', 'playstation');
+                            controller2Indicator.classList.remove('connected', 'playstation');
+                            controller1Name.textContent = 'Player 1: Keyboard';
+                            controller2Name.textContent = 'Player 2: None';
+                            
+                            // Update based on connected controllers
+                            Object.keys(controllerPlayerMapping).forEach(controllerIndex => {
+                                const playerNum = controllerPlayerMapping[controllerIndex];
+                                const controller = connectedControllers[controllerIndex];
+                                
+                                if (!controller) return;
+                                
+                                const controllerType = getControllerType(controller);
+                                const shortName = controller.id.length > 25 ? 
+                                    controller.id.substring(0, 22) + '...' : 
+                                    controller.id;
+                                
+                                if (playerNum === 1) {
+                                    controller1Indicator.classList.add('connected');
+                                    if (controllerType === 'PlayStation') {
+                                        controller1Indicator.classList.add('playstation');
+                                    }
+                                    controller1Name.textContent = `Player 1: ${shortName}`;
+                                } else if (playerNum === 2) {
+                                    controller2Indicator.classList.add('connected');
+                                    if (controllerType === 'PlayStation') {
+                                        controller2Indicator.classList.add('playstation');
+                                    }
+                                    controller2Name.textContent = `Player 2: ${shortName}`;
+                                }
+                            });
+                        }
+                        
+                        function simulateKeyPress(key, type) {
+                            const canvas = document.getElementById("outputCanvas");
+                            let code = "";
+                            
+                            // Convert key to proper code
+                            if (key.length === 1) {
+                                code = "Key" + key.toUpperCase();
+                            } else if (key === "Enter") {
+                                code = "Enter";
+                            } else if (key === "Backspace") {
+                                code = "Backspace";
+                            } else if (key.startsWith("Arrow")) {
+                                code = key;
+                            } else if (key.startsWith("Numpad")) {
+                                code = key;
+                            } else if (["1", "2", "3", "8", "9", "0"].includes(key)) {
+                                code = "Digit" + key;
+                            } else if (key === "Comma") {
+                                code = "Comma";
+                            } else if (key === "Period") {
+                                code = "Period";
+                            } else if (key === "Slash") {
+                                code = "Slash";
+                            } else if (key === "Semicolon") {
+                                code = "Semicolon";
+                            }
+                            
+                            const event = new KeyboardEvent(type, {
+                                key: key,
+                                code: code,
+                                bubbles: true,
+                                cancelable: true,
+                                isTrusted: true
+                            });
+                            
+                            if (canvas) canvas.dispatchEvent(event);
+                            window.dispatchEvent(event);
+                            document.dispatchEvent(event);
+                        }
+                        
+                        function handleControllerButton(controllerIndex, buttonIndex, pressed) {
+                            const playerNum = controllerPlayerMapping[controllerIndex];
+                            if (!playerNum) return;
+                            
+                            const controller = connectedControllers[controllerIndex];
+                            if (!controller) return;
+                            
+                            // Choose the appropriate button mapping based on controller type
+                            const controllerType = getControllerType(controller);
+                            let mapping;
+                            
+                            if (controllerType === 'Xbox') {
+                                mapping = XBOX_BUTTON_MAPPING[buttonIndex];
+                            } else {
+                                // Default to PlayStation mapping for PlayStation and Generic controllers
+                                mapping = PS_BUTTON_MAPPING[buttonIndex];
+                            }
+                            
+                            if (!mapping) return;
+                            
+                            const key = playerNum === 1 ? mapping.player1 : mapping.player2;
+                            const eventType = pressed ? 'keydown' : 'keyup';
+                            
+                            simulateKeyPress(key, eventType);
+                            console.log(`Controller ${controllerIndex} (${controllerType}, Player ${playerNum}): Button ${buttonIndex} ${pressed ? 'pressed' : 'released'} -> ${key}`);
+                        }
+                        
+                        function handleControllerAxis(controllerIndex, axisIndex, value) {
+                            const playerNum = controllerPlayerMapping[controllerIndex];
+                            if (!playerNum) return;
+                            
+                            const playerKey = playerNum === 1 ? 'player1' : 'player2';
+                            const analogMapping = ANALOG_MAPPING[playerKey];
+                            
+                            const deadzone = 0.25; // Slightly reduced deadzone for better responsiveness
+                            let stickMapping = null;
+                            
+                            // Determine which stick and axis
+                            if (axisIndex === 0 || axisIndex === 1) {
+                                // Left stick
+                                stickMapping = analogMapping.leftStick;
+                            } else if (axisIndex === 2 || axisIndex === 3) {
+                                // Right stick  
+                                stickMapping = analogMapping.rightStick;
+                            }
+                            
+                            if (!stickMapping) return;
+                            
+                            // Get previous axis state
+                            if (!previousAxisStates[controllerIndex]) {
+                                previousAxisStates[controllerIndex] = {};
+                            }
+                            const prevValue = previousAxisStates[controllerIndex][axisIndex] || 0;
+                            
+                            // Handle horizontal axis (0 = left stick X, 2 = right stick X)
+                            if (axisIndex === 0 || axisIndex === 2) {
+                                // Release previous keys if axis changed significantly
+                                if (Math.abs(value - prevValue) > 0.1) {
+                                    simulateKeyPress(stickMapping.left, 'keyup');
+                                    simulateKeyPress(stickMapping.right, 'keyup');
+                                }
+                                
+                                if (value < -deadzone) {
+                                    simulateKeyPress(stickMapping.left, 'keydown');
+                                } else if (value > deadzone) {
+                                    simulateKeyPress(stickMapping.right, 'keydown');
+                                }
+                            }
+                            
+                            // Handle vertical axis (1 = left stick Y, 3 = right stick Y)
+                            if (axisIndex === 1 || axisIndex === 3) {
+                                // Release previous keys if axis changed significantly
+                                if (Math.abs(value - prevValue) > 0.1) {
+                                    simulateKeyPress(stickMapping.up, 'keyup');
+                                    simulateKeyPress(stickMapping.down, 'keyup');
+                                }
+                                
+                                if (value < -deadzone) {
+                                    simulateKeyPress(stickMapping.up, 'keydown');
+                                } else if (value > deadzone) {
+                                    simulateKeyPress(stickMapping.down, 'keydown');
+                                }
+                            }
+                            
+                            // Store current axis state
+                            previousAxisStates[controllerIndex][axisIndex] = value;
+                        }
+                        
+                        // Enhanced controller event listeners
+                        window.addEventListener("gamepadconnected", function(e) {
+                            console.log("Controller connected:", e.gamepad.id);
+                            connectedControllers[e.gamepad.index] = e.gamepad;
+                            
+                            const controllerType = getControllerType(e.gamepad);
+                            console.log(`Detected ${controllerType} controller`);
+                            
+                            // Assign to next available player slot
+                            if (nextPlayerSlot <= 2) {
+                                controllerPlayerMapping[e.gamepad.index] = nextPlayerSlot;
+                                playerControllerMapping[nextPlayerSlot] = e.gamepad.index;
+                                console.log(`Controller ${e.gamepad.index} assigned to Player ${nextPlayerSlot}`);
+                                nextPlayerSlot++;
+                            } else {
+                                console.log(`Controller ${e.gamepad.index} connected but no player slots available`);
+                            }
+                            
+                            updateControllerStatus();
+                        });
+                        
+                        window.addEventListener("gamepaddisconnected", function(e) {
+                            console.log("Controller disconnected:", e.gamepad.id);
+                            
+                            // Free up the player slot
+                            const playerNum = controllerPlayerMapping[e.gamepad.index];
+                            if (playerNum) {
+                                delete controllerPlayerMapping[e.gamepad.index];
+                                delete playerControllerMapping[playerNum];
+                                
+                                // Reset next player slot to the lowest available
+                                nextPlayerSlot = Math.min(nextPlayerSlot, playerNum);
+                                
+                                // Release any held keys for this controller
+                                if (previousButtonStates[e.gamepad.index]) {
+                                    delete previousButtonStates[e.gamepad.index];
+                                }
+                                if (previousAxisStates[e.gamepad.index]) {
+                                    delete previousAxisStates[e.gamepad.index];
+                                }
+                            }
+                            
+                            delete connectedControllers[e.gamepad.index];
+                            updateControllerStatus();
+                        });
+                        
+                        // Enhanced controller polling loop
+                        function pollControllers() {
+                            const gamepads = navigator.getGamepads();
+                            
+                            for (let i = 0; i < gamepads.length; i++) {
+                                const gamepad = gamepads[i];
+                                if (!gamepad || !controllerPlayerMapping[i]) continue;
+                                
+                                // Update connected controllers array
+                                connectedControllers[i] = gamepad;
+                                
+                                // Initialize previous state if needed
+                                if (!previousButtonStates[i]) {
+                                    previousButtonStates[i] = new Array(gamepad.buttons.length).fill(false);
+                                }
+                                
+                                // Check buttons
+                                for (let j = 0; j < gamepad.buttons.length; j++) {
+                                    const button = gamepad.buttons[j];
+                                    const pressed = button.pressed || button.value > 0.5;
+                                    const wasPressed = previousButtonStates[i][j];
+                                    
+                                    if (pressed !== wasPressed) {
+                                        handleControllerButton(i, j, pressed);
+                                        previousButtonStates[i][j] = pressed;
+                                    }
+                                }
+                                
+                                // Check axes (analog sticks)
+                                for (let j = 0; j < gamepad.axes.length; j++) {
+                                    handleControllerAxis(i, j, gamepad.axes[j]);
+                                }
+                            }
+                            
+                            requestAnimationFrame(pollControllers);
+                        }
+                        
+                        // Start controller polling
+                        pollControllers();
+
                         // Mobile controls functionality
                         const mobileControls = document.getElementById("mobile-controls");
                         const touchControlsToggle = document.getElementById("touch-controls-toggle");
@@ -604,97 +1023,49 @@
                         // Settings panel functionality
                         const settingsToggle = document.getElementById("settings-toggle");
                         const settingsPanel = document.getElementById("settings-panel");
-                        const resolutionSelect = document.getElementById("resolution-select");
-
-                        settingsToggle.addEventListener('click', function() {
+                        
+                        function toggleSettings() {
                             settingsPanel.classList.toggle('expanded');
-                        });
-
-                        resolutionSelect.addEventListener('change', function(e) {
-                            const newScale = parseInt(e.target.value);
-                            
-                            // Wait for React app to be ready
-                            setTimeout(() => {
-                                if (window.PlayModule && window.PlayModule.setResolutionScale) {
-                                    window.PlayModule.setResolutionScale(newScale);
-                                    console.log('Resolution set to:', newScale + 'x');
-                                }
-                            }, 100);
-                            
-                            // Auto-hide panel
-                            setTimeout(() => {
-                                settingsPanel.classList.remove('expanded');
-                            }, 1000);
-                        });
-
-                        // Auto-hide file import panel after file selection
-                        const observer = new MutationObserver(function(mutations) {
-                            mutations.forEach(function(mutation) {
-                                if (mutation.type === 'childList' && rootDiv.children.length > 0) {
-                                    const fileInput = rootDiv.querySelector('input[type="file"]');
-                                    if (fileInput) {
-                                        fileInput.addEventListener('change', function() {
-                                            if (this.files.length > 0) {
-                                                setTimeout(() => {
-                                                    rootDiv.classList.remove('expanded');
-                                                }, 1000);
-                                            }
-                                        });
-                                    }
-                                }
-                            });
-                        });
-
-                        observer.observe(rootDiv, { childList: true, subtree: true });
-
-                        // COPIED EXACT BUTTON LOGIC FROM WORKING FILE
-                        const i = document.getElementById("outputCanvas");
-                        function d(e, t="Message") {
-                            const n = `\n                  <div id="custom-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; align-items: center;">\n                      <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; max-width: 80%; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">\n                          <h3 style="margin-top: 0;">${t}</h3>\n                          <p>${e}</p>\n                          <button id="close-modal" style="padding: 8px 16px; margin-top: 10px; border: none; border-radius: 5px; background: #3498db; color: white; cursor: pointer;">OK</button>\n                      </div>\n                  </div>\n              `;
-                            document.body.insertAdjacentHTML("beforeend", n),
-                            document.getElementById("close-modal").addEventListener("click", ( () => {
-                                document.getElementById("custom-modal").remove()
-                            }
-                            ))
                         }
-                        function s(e, t) {
-                            // FIXED: Don't dispatch events if controls are hidden
-                            if (mobileControls.classList.contains('hidden')) {
-                                return;
-                            }
+                        
+                        settingsToggle.addEventListener('click', toggleSettings);
+
+                        // Resolution scaling functionality
+                        const resolutionSelect = document.getElementById("resolution-select");
+                        
+                        resolutionSelect.addEventListener('change', function() {
+                            const scale = parseInt(this.value);
+                            console.log(`Setting resolution scale to ${scale}x`);
                             
-                            let n = "";
-                            1 === e.length ? n = "Key" + e.toUpperCase() : "Enter" === e ? n = "Enter" : "Backspace" === e ? n = "Backspace" : e.startsWith("Arrow") ? n = e : ["1", "2", "3", "8", "9", "0"].includes(e) && (n = "Digit" + e);
-                            const o = new KeyboardEvent(t,{
+                            // Call the emulator's resolution scaling function
+                            if (typeof Module !== 'undefined' && Module.setResolutionScale) {
+                                Module.setResolutionScale(scale);
+                            }
+                        });
+
+                        // Touch controls for mobile
+                        function s(e, t) {
+                            const n = document.getElementById("outputCanvas");
+                            let o = "";
+                            1 === e.length ? o = "Key" + e.toUpperCase() : "Enter" === e ? o = "Enter" : "Backspace" === e ? o = "Backspace" : e.startsWith("Arrow") ? o = e : e.startsWith("Numpad") ? o = e : ["1", "2", "3", "8", "9", "0"].includes(e) ? o = "Digit" + e : "Comma" === e ? o = "Comma" : "Period" === e ? o = "Period" : "Slash" === e ? o = "Slash" : "Semicolon" === e && (o = "Semicolon");
+                            const i = new KeyboardEvent(t,{
                                 key: e,
-                                code: n,
+                                code: o,
                                 bubbles: !0,
                                 cancelable: !0,
                                 isTrusted: !0
                             });
-                            i && i.dispatchEvent(o),
-                            window.dispatchEvent(o),
-                            document.dispatchEvent(o)
+                            n && n.dispatchEvent(i),
+                            window.dispatchEvent(i),
+                            document.dispatchEvent(i)
                         }
                         function c(e, t) {
-                            // FIXED: Don't add pressed class or dispatch events if controls are hidden
-                            if (mobileControls.classList.contains('hidden')) {
-                                return;
-                            }
-                            
-                            e.classList.add("pressed"),
                             s(t, "keydown"),
-                            console.log(`Keydown event dispatched for: ${t}`)
+                            e.classList.add("pressed")
                         }
                         function a(e, t) {
-                            // FIXED: Don't remove pressed class or dispatch events if controls are hidden
-                            if (mobileControls.classList.contains('hidden')) {
-                                return;
-                            }
-                            
-                            e.classList.remove("pressed"),
                             s(t, "keyup"),
-                            console.log(`Keyup event dispatched for: ${t}`)
+                            e.classList.remove("pressed")
                         }
                         document.querySelectorAll("#mobile-controls button[data-key]").forEach((function(e) {
                             const t = e.getAttribute("data-key");
@@ -809,125 +1180,40 @@
                             E(u, f, t.clientX, t.clientY, p, h)
                         }
                         ), !1),
-                        window.addEventListener("mousemove", (e => {
+                        document.addEventListener("mousemove", (e => {
                             v && E(l, r, e.clientX, e.clientY, m, g),
                             y && E(u, f, e.clientX, e.clientY, p, h)
                         }
                         )),
-                        window.addEventListener("touchmove", (e => {
-                            if (v) {
-                                const t = Array.from(e.touches).find((e => e.target.closest("#left-joystick")));
-                                t && E(l, r, t.clientX, t.clientY, m, g)
-                            }
-                            if (y) {
-                                const t = Array.from(e.touches).find((e => e.target.closest("#right-joystick")));
-                                t && E(u, f, t.clientX, t.clientY, p, h)
+                        document.addEventListener("touchmove", (e => {
+                            if (v || y) {
+                                e.preventDefault();
+                                for (let t = 0; t < e.touches.length; t++) {
+                                    const n = e.touches[t];
+                                    v && E(l, r, n.clientX, n.clientY, m, g),
+                                    y && E(u, f, n.clientX, n.clientY, p, h)
+                                }
                             }
                         }
-                        )),
-                        window.addEventListener("mouseup", ( () => {
-                            v && (v = !1,
-                            w(r, g)),
-                            y && (y = !1,
-                            w(f, h))
+                        ), {
+                            passive: !1
+                        }),
+                        document.addEventListener("mouseup", ( () => {
+                            v && (w(r, g),
+                            v = !1),
+                            y && (w(f, h),
+                            y = !1)
                         }
                         )),
-                        window.addEventListener("touchend", (e => {
-                            v && (Array.from(e.touches).some((e => e.target.closest("#left-joystick"))) || (v = !1,
-                            w(r, g))),
-                            y && (Array.from(e.touches).some((e => e.target.closest("#right-joystick"))) || (y = !1,
-                            w(f, h)))
+                        document.addEventListener("touchend", (e => {
+                            0 === e.touches.length && (v && (w(r, g),
+                            v = !1),
+                            y && (w(f, h),
+                            y = !1))
                         }
                         ))
-
-                        // GAMEPAD FUNCTIONALITY ADDED
-                        // Track pressed state so we don't spam events
-                        const gamepadPressed = {};
-
-                        function sendGamepadKey(key, down) {
-                            if (gamepadPressed[key] === down) return;
-                            gamepadPressed[key] = down;
-                            
-                            // FIXED: Gamepad should work independently of mobile controls visibility
-                            let code = "";
-                            if (key.length === 1) code = "Key" + key.toUpperCase();
-                            else if (key === "Enter") code = "Enter";
-                            else if (key === "Backspace") code = "Backspace";
-                            else if (key.startsWith("Arrow")) code = key;
-                            else if (["1","2","3","8","9","0"].includes(key)) code = "Digit" + key;
-
-                            const evt = new KeyboardEvent(down ? "keydown" : "keyup", {
-                                key: key,
-                                code: code,
-                                bubbles: true,
-                                cancelable: true,
-                                isTrusted: true
-                            });
-
-                            if (i) i.dispatchEvent(evt);
-                            window.dispatchEvent(evt);
-                            document.dispatchEvent(evt);
-                        }
-
-                        function handleGamepad(pad) {
-                            // Face buttons
-                            sendGamepadKey("Z", pad.buttons[0].pressed); // Cross (A)
-                            sendGamepadKey("X", pad.buttons[1].pressed); // Circle (B)
-                            sendGamepadKey("A", pad.buttons[2].pressed); // Square (X)
-                            sendGamepadKey("S", pad.buttons[3].pressed); // Triangle (Y)
-
-                            // D-Pad
-                            sendGamepadKey("ArrowUp", pad.buttons[12].pressed);
-                            sendGamepadKey("ArrowDown", pad.buttons[13].pressed);
-                            sendGamepadKey("ArrowLeft", pad.buttons[14].pressed);
-                            sendGamepadKey("ArrowRight", pad.buttons[15].pressed);
-
-                            // Start / Select
-                            sendGamepadKey("Enter", pad.buttons[9].pressed);
-                            sendGamepadKey("Backspace", pad.buttons[8].pressed);
-
-                            // Shoulders / Triggers
-                            sendGamepadKey("1", pad.buttons[4].pressed);  // L1
-                            sendGamepadKey("2", pad.buttons[6].pressed);  // L2
-                            sendGamepadKey("3", pad.buttons[10].pressed); // L3
-                            sendGamepadKey("8", pad.buttons[5].pressed);  // R1
-                            sendGamepadKey("9", pad.buttons[7].pressed);  // R2
-                            sendGamepadKey("0", pad.buttons[11].pressed); // R3
-
-                            // Left stick → F/H/T/G
-                            sendGamepadKey("f", pad.axes[0] < -0.5);
-                            sendGamepadKey("h", pad.axes[0] > 0.5);
-                            sendGamepadKey("t", pad.axes[1] < -0.5);
-                            sendGamepadKey("g", pad.axes[1] > 0.5);
-
-                            // Right stick → J/L/I/K
-                            sendGamepadKey("j", pad.axes[2] < -0.5);
-                            sendGamepadKey("l", pad.axes[2] > 0.5);
-                            sendGamepadKey("i", pad.axes[3] < -0.5);
-                            sendGamepadKey("k", pad.axes[3] > 0.5);
-                        }
-
-                        function pollGamepads() {
-                            const pads = navigator.getGamepads();
-                            for (const pad of pads) {
-                                if (pad) handleGamepad(pad);
-                            }
-                            requestAnimationFrame(pollGamepads);
-                        }
-
-                        window.addEventListener("gamepadconnected", (e) => {
-                            console.log("Gamepad connected:", e.gamepad.id);
-                            pollGamepads();
-                        });
-
-                        window.addEventListener("gamepaddisconnected", (e) => {
-                            console.log("Gamepad disconnected:", e.gamepad.id);
-                        });
-                    }))
+                    }));
                 </script>
-            </div>
-            <div class="global-column" style="max-width:500px;overflow:auto">
-                <div></div>
             </div>
         </div>
     </body>
