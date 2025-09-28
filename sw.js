@@ -8,7 +8,7 @@ const URLS_TO_CACHE = [
   '/play-512.png',
   '/index.html',
   '/manifest.json',
-  '/static/js/main.e61b6157.js',
+  '/static/js/main.55ba5bb6.js',
   '/static/css/main.5a525eca.css'
 ];
 
