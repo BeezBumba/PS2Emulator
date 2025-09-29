@@ -262,6 +262,33 @@
                 color: #2196F3;
             }
 
+            /* VM Controls */
+            .vm-controls {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .vm-controls button {
+                flex: 1;
+                padding: 6px 8px;
+                background: #444;
+                color: #fff;
+                border: 1px solid #666;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                transition: background 0.2s;
+            }
+
+            .vm-controls button:hover {
+                background: #555;
+            }
+
+            .vm-controls button.success {
+                background: #4CAF50;
+            }
+
             #outputCanvas {
                 display: block;
                 position: absolute;
@@ -520,7 +547,7 @@
                 -ms-user-select: none
             }
         </style>
-        <script defer="defer" src="/static/js/main.55ba5bb6.js"></script>
+        <script defer="defer" src="/static/js/main.js"></script>
         <script defer src="/register.js"></script>
         <link href="/static/css/main.5a525eca.css" rel="stylesheet">
     </head>
@@ -552,6 +579,19 @@
                         <option value="2">2x (1280×960)</option>
                         <option value="3">3x (1920×1440)</option>
                     </select>
+                    
+                    <label for="input-mode-select">Input Mode:</label>
+                    <select id="input-mode-select">
+                        <option value="auto">Auto-Detect</option>
+                        <option value="keyboard-analog">Force Keyboard Analog</option>
+                        <option value="controller-analog">Force Controller Analog</option>
+                    </select>
+                    
+                    <label>VM Control:</label>
+                    <div class="vm-controls">
+                        <button id="pause-resume-btn">⏸️ Pause</button>
+                        <button id="reset-btn">🔄 Reset</button>
+                    </div>
                     
                     <!-- Controller Status Section -->
                     <div class="controller-status-section">
@@ -1061,6 +1101,61 @@
                         }
                         
                         settingsToggle.addEventListener('click', toggleSettings);
+
+                        // VM Controls and Input Mode
+                        let inputMode = 'auto';
+                        let vmPaused = false;
+                        
+                        const inputModeSelect = document.getElementById('input-mode-select');
+                        const pauseResumeBtn = document.getElementById('pause-resume-btn');
+                        const resetBtn = document.getElementById('reset-btn');
+                        
+                        // Input mode selection
+                        inputModeSelect.addEventListener('change', function(e) {
+                            inputMode = e.target.value;
+                            console.log('Input mode changed to:', inputMode);
+                        });
+                        
+                        // VM Controls
+                        pauseResumeBtn.addEventListener('click', function() {
+                            if (window.PlayModule) {
+                                if (vmPaused) {
+                                    if (window.PlayModule.resumeVm) {
+                                        window.PlayModule.resumeVm();
+                                        vmPaused = false;
+                                        pauseResumeBtn.textContent = '⏸️ Pause';
+                                        pauseResumeBtn.classList.remove('success');
+                                        console.log('VM resumed');
+                                    }
+                                } else {
+                                    if (window.PlayModule.pauseVm) {
+                                        window.PlayModule.pauseVm();
+                                        vmPaused = true;
+                                        pauseResumeBtn.textContent = '▶️ Resume';
+                                        pauseResumeBtn.classList.add('success');
+                                        console.log('VM paused');
+                                    }
+                                }
+                            }
+                        });
+                        
+                        resetBtn.addEventListener('click', function() {
+                            if (confirm('Are you sure you want to reset the emulator? All unsaved progress will be lost.')) {
+                                if (window.PlayModule && window.PlayModule.resetVm) {
+                                    window.PlayModule.resetVm();
+                                    vmPaused = false;
+                                    pauseResumeBtn.textContent = '⏸️ Pause';
+                                    pauseResumeBtn.classList.remove('success');
+                                    
+                                    resetBtn.classList.add('success');
+                                    setTimeout(() => {
+                                        resetBtn.classList.remove('success');
+                                    }, 1000);
+                                    
+                                    console.log('VM reset');
+                                }
+                            }
+                        });
 
                         // Resolution scaling functionality
                         const resolutionSelect = document.getElementById("resolution-select");
